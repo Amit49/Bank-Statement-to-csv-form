@@ -101,6 +101,7 @@ def Pattern1(pdf_file, csv_output):
 
 # Done
 # 2_axis_1. 01-04-2021 to 13-10-2021.pdf
+# 2b_2. AXIS BANK.pdf
 # pattern: "Tran Date Chq No Particulars Debit Credit Balance Init."
 
 def Pattern2(pdf_file, csv_output):
@@ -119,6 +120,15 @@ def Pattern2(pdf_file, csv_output):
             df.drop(0,inplace=True)
             new_row = pd.DataFrame([["Tran Date", "Chq No", "Particulars", "Debit", "Credit", "Balance", "Init. br"]])
             df = pd.concat([new_row, df], ignore_index=True)
+        for index, row in df.iterrows():
+                
+                match = re.search(r'[a-zA-Z]', row[1])
+                if match:
+                    year = match.group(0)
+                    updated_string = row[1][:match.start()]
+                    remainder = row[1][match.start():]
+                    row[1] = updated_string
+                    row[2] = remainder + row[2]
         df.to_csv(csv_output ,mode='a',index=False,header=False)
         # tables[i].to_csv(csv_output ,mode='a')
         global Success
@@ -161,26 +171,73 @@ def Pattern3(pdf_file, csv_output):
 
 # Done
 # 10_SBI_2. 1.6.2021 to 20.7.2021 OK.pdf
+# 10_1_1. SBI.pdf
 # pattern: "Txn\nDateValue\nDateDescription Ref\nNo./Cheque\nNo.Branch\nCodeDebit Credit Balance"
+# pattern: "Txn Date Value\nDateDescription Ref No./Cheque\nNo.Debit Credit Balance"
 def Pattern4(pdf_file, csv_output):
 
-    pattern_text ="Txn\nDateValue\nDateDescription Ref\nNo./Cheque\nNo.Branch\nCodeDebit Credit Balance" 
-    if not search_keyword_in_pdf(pdf_file,pattern_text):
+    pattern_text1 ="Txn\nDateValue\nDateDescription Ref\nNo./Cheque\nNo.Branch\nCodeDebit Credit Balance"
+    pattern_text2 ="Txn Date Value\nDateDescription Ref No./Cheque\nNo.Debit Credit Balance"
+    if not search_keyword_in_pdf(pdf_file,pattern_text1) and not search_keyword_in_pdf(pdf_file,pattern_text2):
         return
 
     print("Pattern4")
+    global Success
+    
+    if search_keyword_in_pdf(pdf_file,pattern_text1):
+        print("Pattern4111")
+        # extract_tables_with_camelot(pdf_file,csv_output)
+        tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
+        for i in range(tables.n):
+            df = tables[i].df
+            if(i!=0):
+                df = df.drop(0)            
+            df.to_csv(csv_output ,mode='a',index=False,header=False)
+            Success = True
+    # 10_1_1. SBI.pdf
+    if search_keyword_in_pdf(pdf_file,pattern_text2):
+        # extract_tables_with_camelot(pdf_file,csv_output)
+        tables = camelot.read_pdf(pdf_file,flavor="lattice",pages="all")
+        for i in range(tables.n):
+            df = tables[i].df
+            if(i!=0):
+                df = df.drop(0)
 
-    # extract_tables_with_camelot(pdf_file,csv_output)
-    tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
-    for i in range(tables.n):
-        df = tables[i].df
-        if(i!=0):
-            df = df.drop(0)            
-        df.to_csv(csv_output ,mode='a',index=False,header=False)
-        global Success
-        Success = True
+            # print("Pattern4222")
+            for index, row in df.iterrows():
+                
+                match = re.search(r'\s\d{4}', row[1])
+                if match:
+                    year = match.group(0)
+                    updated_string = row[1][:match.start()] + year
+                    remainder = row[1][match.end():]
+                    # print(f"index:: {index}")
+                    # print("_____")
+                    # print(match.start())
+                    # print(match.end())
+                    # print("_____")
+                    # print(row[1])
+                    # print(row[2])
+                    # print("_____")
+                    # print(updated_string)
+                    # print("_____")
+                    # print(remainder)
+                    row[1] = updated_string
+                    row[2] = remainder + row[2]
+                    # print("_____")
+                    # print(row[1])
+                    # print(row[2])
+                elif row[1] == "":
+                    
+                    match = re.search(r'\s\d{4}', row[2])
+                    year = match.group(0)
+                    updated_string = row[2][:match.end()]
+                    remainder = row[2][match.end():]
+                    row[1] = updated_string
+                    row[2] = remainder
+            df.to_csv(csv_output ,mode='a',index=False,header=False)
+            Success = True
     return
-
 # Done
 # 13_IDBI_2. 01.04.2021 to 13.10.2021.pdf
 # pattern: "Date\nParticulars\nChq. no\nWithdrawals\nDeposits\nBalance"
@@ -191,7 +248,8 @@ def Pattern5(pdf_file, csv_output):
         return
     print("Pattern5")
     
-    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=12,col_tol=1)
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
+    should_end = False
     for i in range(tables.n):
         # if (i==(tables.n-2)):
         #     camelot.plot(tables[i], kind='text')
@@ -200,13 +258,38 @@ def Pattern5(pdf_file, csv_output):
         
         if len(df.columns) > 2 and len(df.columns) < 6:
             df.insert(2, "Chq. no", "")
-        if(i!=0):
-            date_pattern = r'(\d{2})/(\d{2})/(\d{4})'
-            for index, row in df.iterrows():
+        # if(i!=0):
+        #     date_pattern = r'(\d{2})/(\d{2})/(\d{4})'
+        #     for index, row in df.iterrows():
+        #         # print(row)
+        #         if not re.search(date_pattern,row[0]):
+        #             df = df.drop(index)
+        
+        merged_rows = []  # List to store the merged rows
+        prev_row = None
+        for index, row in df.iterrows():
+            
+            if row.str.contains("Balance as on").any():
+                should_end = True
                 # print(row)
-                if not re.search(date_pattern,row[0]):
-                    df = df.drop(index)
-        df.to_csv(csv_output ,mode='a',index=False,header=False)
+                # print(merged_rows)
+                break
+            if len(row)>4 and row[0] == '' and row[2]==''and row[3]==''and row[4]=='':
+                # Merge with the previous row
+                if prev_row is not None:
+                    prev_row += '\n' + row
+            else:
+                # Add the row to the list of merged rows
+                merged_rows.append(row)
+                prev_row = row
+        
+        dfx = pd.DataFrame(merged_rows)
+        # Remove trailing newlines from all cells
+        dfx = dfx.applymap(lambda x: x.rstrip('\n'))
+        # print(dfx)
+        dfx.to_csv(csv_output ,mode='a',index=False,header=False)
+        if(should_end):
+            break
         global Success
         Success = True
     return
@@ -217,12 +300,14 @@ def Pattern5(pdf_file, csv_output):
 def Pattern6(pdf_file, csv_output):
 
     pattern_text = "Balance Credit Debit Chq No. Particulars Date"
-    if not search_keyword_in_pdf(pdf_file,pattern_text):
+    pattern_text2 = "Akhand Anand"
+    if not search_keyword_in_pdf(pdf_file,pattern_text) or not search_keyword_in_pdf(pdf_file,pattern_text2):
         return
     print("Pattern6")
-    
+    cols = ['65,250,324,409,494,585,655']
+    cols *= 128
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=20,col_tol=20)
-    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=['65,250,324,409,494,585,655'])
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=cols)
     for i in range(tables.n):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
