@@ -1,3 +1,4 @@
+import os
 import sys
 import tabula
 import camelot
@@ -5,6 +6,7 @@ import pandas as pd
 import PyPDF2
 import re
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 # pdf_file =""
 # csv_output=""
@@ -397,6 +399,101 @@ def Pattern7(pdf_file, csv_output):
         Success = True
     return
 
+# Done
+# HORIZON HIGH ~ HDFC ok.pdf
+# pattern: "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
+def Pattern8(pdf_file, csv_output):
+
+    pattern_text = "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern8")
+    cols = ['65,285,361,403,481,562,630']
+    cols *= 128
+    # dfs = tabula.read_pdf(pdf_file,pages="all",columns=cols)
+    tabula.convert_into(pdf_file,"temp.csv",output_format="csv",pages="all")
+    df = pd.read_csv('temp.csv')
+    os.remove('temp.csv')
+    first_index = False
+    prev = 0
+    cur = 0
+    date_pattern = r"\d{2}/\d{2}/\d{2}"
+    merged_rows = []  # List to store the merged rows
+    prev_row = None
+    for index, row in df.iterrows():
+        if("STATEMENT SUMMARY" in row[1]):
+            break
+        if(type(row[0]) is not str):
+            row[0] = str(row[0])
+        date_found = re.search(date_pattern,row[0])
+        if "Date" in row[0] and "Narration" in row[1]:
+            merged_rows.append(row)
+            continue
+            
+        if row[0] != "nan" and not date_found:
+            continue
+        if date_found:
+            if prev_row is not None:
+                merged_rows.append(prev_row)
+            prev_row = row
+        elif row[0] == "nan" and prev_row is not None:
+            """ print("__________")
+            print(row)         
+            print("__________") """
+            if(type(row[1]) is not str):
+                row[1] = str(row[1])
+            if(type(prev_row[1]) is not str):
+                prev_row[1] = str(prev_row[1])
+            prev_row[1] += '\n'+ row[1]
+    merged_rows.append(prev_row)
+    df = pd.DataFrame(merged_rows)
+        
+    for index, row in df.iterrows():
+        if row[6]==None:
+            continue
+        if type(row[6]) == str:
+            balance = float(row[6].replace(",",""))
+        else:
+            balance = row[6]
+        if not first_index:
+            prev = balance
+            first_index=True
+            continue
+        cur = balance
+        row[4] = str(row[4])
+        if row[4]=="nan":
+            row[4]=""
+        row[5] = str(row[5])
+        if row[5]=="nan":
+            row[5]=""
+        # print("/"*5)
+        # print(f"{row[4]}\t {row[5]}\t {row[6]} '''''{prev}")                
+        if cur > prev and row[5] == "":
+            # print("/"*5)
+            # print(f"{row[4]}\t {row[5]}\t {row[6]} '''''{prev}")
+            row[5] = row[4]
+            row[4] =""            
+            # print(f"{row[4]}\t {row[5]}\t {row[6]}")
+            # print("*"*5)
+        elif cur < prev and row[4] == "":
+            # print("="*5)
+            # print(f"{row[4]}\t {row[5]}\t {row[6]} '''''{prev}")
+            row[4] = row[5]
+            row[5] =""            
+            # print(f"{row[4]}\t {row[5]}\t {row[6]}")
+            # print("."*5)
+        # print(f"{row[4]}\t {row[5]}\t {row[6]}")
+        # print("."*5)
+        
+        prev = cur
+    df.loc[-1] = ["Date","Narration","Chq./Ref.No.","Value Dt","Withdrawal Amt.","Deposit Amt.","Closing Balance"]  # adding a row
+    df.index = df.index + 1  # shifting index
+    df.sort_index(inplace=True) 
+    df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True
+    return
+
 def main():
     if len(sys.argv) != 3:
         print("Usage: python script.py <pdf_file> <csv_output>")
@@ -412,6 +509,7 @@ def main():
     Pattern5(pdf_file, csv_output)
     Pattern6(pdf_file, csv_output)
     Pattern7(pdf_file, csv_output)
+    Pattern8(pdf_file, csv_output)
 
     if Success == False:
         Default(pdf_file, csv_output)
