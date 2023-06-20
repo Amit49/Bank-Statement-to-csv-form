@@ -25,7 +25,17 @@ def extract_tables_with_camelot(pdf_file, csv_output):
     for i in range(tables.n):
         # camelot.plot(tables[i], kind='joint').show()
         tables[i].to_csv(csv_output ,mode='a')
-        
+
+def text_in_pdf(pdf_path):
+    text = ""
+    with open(pdf_path, 'rb') as file:
+        pdf_reader = PyPDF2.PdfFileReader(file)
+        num_pages = pdf_reader.numPages
+
+        for page_num in range(num_pages):
+            page = pdf_reader.getPage(page_num)
+            text+= page.extractText()
+    return text
 def search_keyword_in_pdf(pdf_path, keyword):
     with open(pdf_path, 'rb') as file:
         pdf_reader = PyPDF2.PdfFileReader(file)
@@ -494,6 +504,125 @@ def Pattern8(pdf_file, csv_output):
     Success = True
     return
 
+# Done
+# 17_INDUSLAND FY 2021-22.pdf
+# pattern: "Date Description Credit Type Debit\nBalance"
+def Pattern9(pdf_file, csv_output):
+    text = text_in_pdf(pdf_file)
+    pattern_text = "Date Description Credit Type Debit\nBalance"
+    if pattern_text not in text:
+        return
+    print("Pattern9")
+    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",column=cols)
+    tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
+    def rows_list(ind):
+        new_rows = []
+        text = row[ind]
+        split_text = text.split('\n')
+        for split_value in split_text:
+                new_rows.append( split_value )
+        return new_rows
+    for i in range(tables.n):
+        df = tables[i].df
+        # camelot.plot(tables[i], kind='textedge')
+        # camelot.plot(tables[i], kind='grid')
+        # plt.show(block=True)
+        new_rows_0 = []
+        new_rows_1 = []
+        new_rows_2 = []
+        new_rows_3 = []
+        new_rows_4 = []
+        new_rows_5 = []
+        start_index = 0
+        
+        for index, row in df.iterrows():
+            if(row[0] == "Date"):
+                continue
+            new_rows_0 = rows_list (0)
+            new_rows_1 = rows_list (1)
+            # new_rows_2 = rows_list (2)
+            new_rows_3 = rows_list (3)
+            new_rows_4 = rows_list (4)
+            new_rows_5 = rows_list (5)
+            for j in range(len(new_rows_0)):
+                date_match = re.search(new_rows_0[j], text)
+                decimal_match = re.search(new_rows_3[j], text)
+
+                # Extract the substrings if both patterns are found
+                if date_match and decimal_match:
+                    date_string = date_match.group()
+                    decimal_string = decimal_match.group()
+                    text1 = text[text.index(date_string) + len(date_string):text.index(decimal_string)]
+                    text = text[text.index(decimal_string) + len(decimal_string)+5:]
+                    new_rows_2.append( text1 )
+            df = pd.DataFrame({'0':new_rows_0,
+                               '1':new_rows_1,
+                               '2':new_rows_2,
+                               '3':new_rows_3,
+                               '4':new_rows_4,
+                               '5':new_rows_5,})
+            # new_row = pd.DataFrame([["Date", "Type", "Description", "Debit", "Credit", "Balance"]])
+            if i == 0:
+                # print("????")
+                df.loc[-1] = ["Date", "Type", "Description", "Debit", "Credit", "Balance"]
+                df.index = df.index + 1  # shifting index
+                df.sort_index(inplace=True) 
+            df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True
+    return
+
+# Done
+# 18_kotak ok.pdf
+# pattern: "Date Narration Chq/Ref No. Withdrawal (Dr) Deposit (Cr) Balance"
+def Pattern10(pdf_file, csv_output):
+    pattern_text = "Date Narration Chq/Ref No. Withdrawal (Dr) Deposit (Cr) Balance"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern10")
+    cols = ['83,264,350,428,503,575']
+    cols *= 128
+    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="1",col_tol=10)
+    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
+    tabula.convert_into(pdf_file,"temp.csv",output_format="csv",pages="all")
+    df = pd.read_csv('temp.csv')
+    os.remove('temp.csv')
+    drop_row = []
+    for index, row in df.iterrows():
+        # print(index)
+        # print(row)
+        if index == 0:
+            # row[5] = "Balance"
+            # row[6] = ""
+            # print(index)
+            # print(row)
+            drop_row.append(index)
+            continue
+    #     # camelot.plot(tables[i], kind='textedge')
+    #     # plt.show(block=True)
+        if "Statement Summary" in str(row[0]):
+            print("A")
+            drop_row.append(index)
+            # df.drop(index,inplace=True)
+
+        elif "Statement of Banking Account" in str(row[1]):
+            print("B")
+            drop_row.append(index)
+            # df.drop(index,inplace=True)
+
+        elif str(row[5]) == "" or str(row[5]) == "nan":
+            print("C")
+            drop_row.append(index)
+            # df.drop(index,inplace=True)
+    df.drop(drop_row,inplace=True)
+    df = df.dropna(axis=1, how='all')
+    df.loc[-1] = ["Date", "Narration", "Chq/Ref No.", "Withdrawal (Dr)", "Deposit (Cr)", "Balance"]
+    df.index = df.index + 1  # shifting index
+    df.sort_index(inplace=True) 
+    df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True
+    return
 def main():
     if len(sys.argv) != 3:
         print("Usage: python script.py <pdf_file> <csv_output>")
@@ -510,6 +639,8 @@ def main():
     Pattern6(pdf_file, csv_output)
     Pattern7(pdf_file, csv_output)
     Pattern8(pdf_file, csv_output)
+    Pattern9(pdf_file, csv_output)
+    Pattern10(pdf_file, csv_output)
 
     if Success == False:
         Default(pdf_file, csv_output)
