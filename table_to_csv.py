@@ -615,7 +615,7 @@ def Pattern10(pdf_file, csv_output):
             drop_row.append(index)
             # df.drop(index,inplace=True)
     df.drop(drop_row,inplace=True)
-    df = df.dropna(axis=1, how='all')
+    df = df.dropna(axis=1, how='all') #drop empty columns
     df.loc[-1] = ["Date", "Narration", "Chq/Ref No.", "Withdrawal (Dr)", "Deposit (Cr)", "Balance"]
     df.index = df.index + 1  # shifting index
     df.sort_index(inplace=True) 
@@ -623,6 +623,185 @@ def Pattern10(pdf_file, csv_output):
     global Success
     Success = True
     return
+
+# Done
+# 19_kotak_01. 01.04.2022 TO 31.08.2022.pdf
+# pattern: "# TRANSACTION TRANSACTION DETAILS CHQ / REF NO. DEBIT(₹) CREDIT(₹) BALANCE(₹)"
+def Pattern11(pdf_file, csv_output):
+    pattern_text = "# TRANSACTION TRANSACTION DETAILS CHQ / REF NO. DEBIT(₹) CREDIT(₹) BALANCE(₹)"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern11")
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=15)
+    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
+    # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
+    column_name_appened = False
+    for i in range(tables.n):
+        df = tables[i].df
+        date_pattern = r"\d{2} [A-Za-z]{3} \d{4}"
+        drop_row = []
+        for index, row in df.iterrows():
+            date_match = re.search(date_pattern,row[1])
+            if not date_match:
+                drop_row.append(index)
+        # print(drop_row)
+        df.drop(drop_row,inplace=True)
+        print(df.columns)
+        if len(df.columns)>6 and column_name_appened is False:
+            column_name_appened = True
+            df.loc[-1] = ["#", "TRANSACTION",  "TRANSACTION DETAILS", "CHQ / REF NO.", "DEBIT", "CREDIT", "BALANCE"]
+            df.index = df.index + 1  # shifting index
+            df.sort_index(inplace=True) 
+        
+        df.to_csv(csv_output ,mode='a',index=False,header=False)
+        global Success
+        Success = True
+    return
+
+# Done
+# 20_kotak_2_1. 01.04.2021 TO 26.08.2021.PDF
+# pattern: "Date Narration Withdrawal (Dr)/\nDeposit (Cr)Balance Chq/Ref"
+def Pattern12(pdf_file, csv_output):
+    pattern_text = "Date Narration Withdrawal (Dr)/\nDeposit (Cr)Balance Chq/Ref"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern12")
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
+    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
+    # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
+    column_name_appened = False
+    print(tables.n)
+    for i in range(tables.n):
+        df = tables[i].df
+        date_pattern = r'(\d{2})-(\d{2})-(\d{4})'
+        j=0
+        merged_row = []
+        if i==0:
+            merged_row = [["Date","Narration","Chq/Ref No","Withdrawal (Dr)/Deposit (Cr)","Balance"]]
+            
+        while j < (len(df)):
+            date_match = re.search(date_pattern,df.loc[j, 0])
+            if date_match:
+                # print(f"Row:::\n{df.loc[j]}")
+                if df.loc[j+1, 0] == "" and (df.loc[j+1, 1] != "" or df.loc[j+1, 2] != ""):
+                    new_row = df.loc[j] + df.loc[j+1]
+                    # print(f"New Row:::\n{new_row}")
+                    merged_row.append(new_row)
+                    j+=2
+                    continue
+                else:
+                    merged_row.append(df.loc[j])
+            j+=1
+        df = pd.DataFrame(merged_row)
+        # print(f"Merged Row:::\n{merged_row}")
+        df.to_csv(csv_output ,mode='a',index=False,header=False)
+        global Success
+        Success = True
+    return
+
+# Done
+# 21_kotak_3. JUNE 2021.pdf
+# pattern: "Chq / Ref number Dr / Cr Amount Description Balance Dr / Cr Date Sl. No."
+def Pattern13(pdf_file, csv_output):
+    pattern_text = "Chq / Ref number Dr / Cr Amount Description Balance Dr / Cr Date Sl. No."
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern13")
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
+    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
+    # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
+    column_name_appened = False
+    # print(tables.n)
+    for i in range(tables.n):
+        df = tables[i].df
+        # camelot.plot(tables[0], kind='contour')
+        # plt.show(block = True)
+        # date_pattern = r"\d{2}-d{2}-\d{4}"
+        date_pattern = r"\d{2}/\d{2}/\d{4}"
+        j=0
+        
+        if len(df.columns) < 8:
+            continue
+        merged_row = []
+        
+        # merged_row = [["Date","Narration","Chq/Ref No","Withdrawal (Dr)/Deposit (Cr)","Balance"]]
+        # merged_row = [["Sl.,No.","Date","Description","Chq / Ref number","Amount","Dr / Cr","Balance","Dr / Cr"]]
+        while j < (len(df)):
+            if "Opening balance" in df.loc[j, 0]:
+                break
+            # date_match = re.search(date_pattern,df.loc[j, 0])
+            # print(df.loc[j])
+            if len(df.loc[j])==9 and ("DR" in df.loc[j, 8] or "CR" in df.loc[j, 8]):
+                k = j+1
+                new_row = df.loc[j]
+                # print("k")
+                # print(k)
+                while k<(len(df)) and ("DR" not in df.loc[k, 8] and "CR" not in df.loc[k, 8]):
+                    new_row += df.loc[k]
+                    j+=1
+                    k+=1
+                merged_row.append(new_row)
+            elif len(df.loc[j])==8 and ("DR" in df.loc[j, 7] or "CR" in df.loc[j, 7]):
+                
+                k = j+1
+                new_row = df.loc[j]
+                # print("k")
+                # print(k)
+                while k<(len(df)) and ("DR" not in df.loc[k, 7] and "CR" not in df.loc[k, 7]):
+                    new_row += df.loc[k]
+                    j+=1
+                    k+=1
+                merged_row.append(new_row)
+            else:
+                j+=1
+
+        df = pd.DataFrame(merged_row)
+        if len(df.columns) == 8:
+            date_pattern = r"\d{2}/\d{2}/\d{4}"
+            df = df.reset_index(drop=True)
+            # print(df)
+            l=0
+            while l < (len(df)):
+                # print(df.loc[j])
+                if df.loc[l,1] == "":
+                    # print(df.loc[j])
+                    date_matches = re.search(date_pattern,df.loc[l, 0])
+                    df.loc[l,1] = df.loc[l,0][date_matches.start():10]
+                    df.loc[l,0] = df.loc[l,0][:date_matches.start()]
+                l+=1
+        if len(df.columns) == 9:
+            df = df.drop(2,axis=1)
+        if column_name_appened is False:
+            column_name_appened = True
+            df.loc[-1] = ["Sl.,No.","Date","Description","Chq / Ref number","Amount","Dr / Cr","Balance","Dr / Cr"]
+            df.index = df.index + 1  # shifting index
+            df.sort_index(inplace=True) 
+        df.to_csv(csv_output ,mode='a',index=False,header=False)
+        global Success
+        Success = True
+    return
+
+# Done
+# 22_OpTransactionHistoryUX504-01-2023 (1).pdf
+# pattern: "NARRATION DEPOSIT(CR) DATE CHQ.NO. WITHDRAWAL(DR) BALANCE(INR)"
+def Pattern14(pdf_file, csv_output):
+    pattern_text = "NARRATION DEPOSIT(CR) DATE CHQ.NO. WITHDRAWAL(DR) BALANCE(INR)"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern14")
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=12)
+    for i in range(tables.n):
+        df = tables[i].df
+        date_pattern = r"\d{2}/\d{2}/\d{4}"
+        drop_row = []
+        for index, row in df.iterrows():
+            date_match = re.search(date_pattern,row[0])
+            if "DATE" not in row[0] and (not date_match or "Page" in row[2]):
+                drop_row.append(index)
+        df = df.drop(drop_row).reset_index(drop=True) 
+        df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True
 def main():
     if len(sys.argv) != 3:
         print("Usage: python script.py <pdf_file> <csv_output>")
@@ -641,6 +820,10 @@ def main():
     Pattern8(pdf_file, csv_output)
     Pattern9(pdf_file, csv_output)
     Pattern10(pdf_file, csv_output)
+    Pattern11(pdf_file, csv_output)
+    Pattern12(pdf_file, csv_output)
+    Pattern13(pdf_file, csv_output)
+    Pattern14(pdf_file, csv_output)
 
     if Success == False:
         Default(pdf_file, csv_output)
