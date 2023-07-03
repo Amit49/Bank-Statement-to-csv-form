@@ -122,16 +122,11 @@ def Pattern2(pdf_file, csv_output):
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern2")
-    
-    tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
+    column_name_appened = False
+    tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all",line_scale=40)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1")
     for i in range(tables.n):
         df = tables[i].df
-        if i==0:
-            # print("deleted")
-            df.drop(0,inplace=True)
-            new_row = pd.DataFrame([["Tran Date", "Chq No", "Particulars", "Debit", "Credit", "Balance", "Init. br"]])
-            df = pd.concat([new_row, df], ignore_index=True)
         for index, row in df.iterrows():
                 
                 match = re.search(r'[a-zA-Z]', row[1])
@@ -141,6 +136,11 @@ def Pattern2(pdf_file, csv_output):
                     remainder = row[1][match.start():]
                     row[1] = updated_string
                     row[2] = remainder + row[2]
+        if column_name_appened is False:
+            column_name_appened = True
+            df.loc[-1] = ["Tran Date", "Chq No", "Particulars", "Debit", "Credit", "Balance", "Init. br"]
+            df.index = df.index + 1  # shifting index
+            df.sort_index(inplace=True) 
         df.to_csv(csv_output ,mode='a',index=False,header=False)
         # tables[i].to_csv(csv_output ,mode='a')
         global Success
