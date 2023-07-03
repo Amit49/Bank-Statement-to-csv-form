@@ -5,6 +5,7 @@ import camelot
 import pandas as pd
 import PyPDF2
 import re
+import math
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -457,10 +458,16 @@ def Pattern8(pdf_file, csv_output):
             prev_row[1] += '\n'+ row[1]
     merged_rows.append(prev_row)
     df = pd.DataFrame(merged_rows)
-        
+
     for index, row in df.iterrows():
-        if row[6]==None:
-            continue
+        if  type(row[6]) is not str and math.isnan(row[6]):
+            li = row[5].split(" ")
+            row[6] = li.pop()
+            if li:
+                row[5] = li.pop()
+            else:
+                row[5] =""
+            # print(li)
         if type(row[6]) == str:
             balance = float(row[6].replace(",",""))
         else:
