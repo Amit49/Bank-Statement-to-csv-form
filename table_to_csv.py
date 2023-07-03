@@ -987,6 +987,32 @@ def Pattern18(pdf_file, csv_output):
     global Success
     Success = True
 
+# Ongoing
+# HIRVA 1.8 TO 6.8.pdf
+# pattern: "TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
+def Pattern19(pdf_file, csv_output):
+
+    pattern_text ="TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern19")
+    skip_first = True
+    tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all",line_scale=40)
+    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1")
+    for i in range(tables.n):
+        df = tables[i].df
+        for index, row in df.iterrows():
+            if "Date" in row[0]:
+                if skip_first:
+                    skip_first = False
+                else:
+                    df.drop(index,inplace=True)
+                    break
+        df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True 
+    return
+
 def main():
     if len(sys.argv) != 3:
         print("Usage: python script.py <pdf_file> <csv_output>")
@@ -1013,6 +1039,7 @@ def main():
     Pattern16(pdf_file, csv_output)
     Pattern17(pdf_file, csv_output)
     Pattern18(pdf_file, csv_output)
+    Pattern19(pdf_file, csv_output)
 
     if Success == False:
         Default(pdf_file, csv_output)
