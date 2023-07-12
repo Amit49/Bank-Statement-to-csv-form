@@ -149,6 +149,7 @@ def Pattern2(pdf_file, csv_output):
                     row[2] = remainder + row[2]
         if column_name_appened is False:
             column_name_appened = True
+            df = df.drop(0)
             df.loc[-1] = ["Tran Date", "Chq No", "Particulars", "Debit", "Credit", "Balance", "Init. br"]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True) 
