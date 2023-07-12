@@ -1123,8 +1123,9 @@ def Pattern19(pdf_file, csv_output):
     global Success
     Success = True 
     return
-# Ongoing
-# BHUMI BOB 01.03.2023 TO 31.03.2023.pdf
+
+# Done
+# 27_BHUMI BOB 01.03.2023 TO 31.03.2023.pdf
 # pattern: "Serial/\nNoTransaction/\nDateValue/\nDateDescription Cheque/\nNumberDebit Credit Balance"
 def Pattern20(pdf_file, csv_output):
     pattern_text ="Serial\nNoTransaction\nDateValue\nDateDescription Cheque\nNumberDebit Credit Balance\n"
