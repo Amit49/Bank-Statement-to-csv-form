@@ -423,6 +423,7 @@ def Pattern7(pdf_file, csv_output):
 
 
 def Pattern8_1(pdf_file, csv_output):
+    print("Pattern8_1")
     cols = ['65,285,361,403,481,562,630']
     cols *= 128
     should_start_ignore = False
@@ -460,7 +461,6 @@ def Pattern8_1(pdf_file, csv_output):
             j+=1
         df = pd.DataFrame(merged_row)
         df_total =  pd.concat([df_total, df], axis=0).reset_index(drop=True)
-
     j = 0
     merged_row = [["Date","Narration","Chq./Ref.No.","Value Dt","Withdrawal Amt.","Deposit Amt.","Closing Balance"]]
     while j < (len(df_total)):
@@ -471,6 +471,8 @@ def Pattern8_1(pdf_file, csv_output):
             if k<(len(df_total)):
                 next_date_match = re.search(date_pattern,df_total.loc[k,0])
             while k<(len(df_total)) and  not next_date_match:
+                if("This is a computer generated statement" in df_total.loc[k,5]):
+                    break
                 new_row += '\n' + df_total.loc[k]
                 j+=1
                 k+=1
