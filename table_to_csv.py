@@ -1202,8 +1202,11 @@ def Pattern20(pdf_file, csv_output):
     skip_first = True
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=14)
     date_pattern = r"\d{2}-\d{2}-\d{4}"
+    #For avoiding duplicate
+    isInserted = []
     for i in range(tables.n):
         df = tables[i].df
+        # df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
         j=0
         merged_row = []
         if i==0:
@@ -1211,6 +1214,10 @@ def Pattern20(pdf_file, csv_output):
         while j < (len(df)):
             date_match = re.search(date_pattern,df.loc[j,1])
             if date_match:
+                if df.loc[j,0]  in isInserted:
+                    j+=1
+                    continue
+                isInserted.append(df.loc[j,0])
                 merged_row.append(df.loc[j])
             j+=1
         df = pd.DataFrame(merged_row)
