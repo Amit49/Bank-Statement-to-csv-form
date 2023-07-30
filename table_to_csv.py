@@ -92,6 +92,7 @@ def Pattern1(pdf_file, csv_output):
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all", row_tol=12)
     
     date_pattern = r"\d{2}-\d{2}-\d{4}"
+    isInserted = []
     for i in range(tables.n):
         drop_column = []
         df = tables[i].df
@@ -106,6 +107,10 @@ def Pattern1(pdf_file, csv_output):
             # print(df.loc[j, 0])
             # print("*"*6)
             if date_match:
+                if df.loc[j,0]  in isInserted:
+                    j+=1
+                    continue
+                isInserted.append(df.loc[j,0])
                 merged_row.append(df.loc[j])
             j+=1
         df = pd.DataFrame(merged_row)
