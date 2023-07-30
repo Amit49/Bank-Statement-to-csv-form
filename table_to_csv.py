@@ -432,6 +432,7 @@ def Pattern8_1(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in range(tables.n):
         df = tables[i].df
+        df.to_csv("raw.csv" ,mode='a',index=False,header=False)
         j = 0
         merged_row = []
         if i==0:
@@ -461,6 +462,7 @@ def Pattern8_1(pdf_file, csv_output):
             j+=1
         df = pd.DataFrame(merged_row)
         df_total =  pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df_total.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
     j = 0
     merged_row = [["Date","Narration","Chq./Ref.No.","Value Dt","Withdrawal Amt.","Deposit Amt.","Closing Balance"]]
     while j < (len(df_total)):
@@ -485,6 +487,67 @@ def Pattern8_1(pdf_file, csv_output):
     global Success
     Success = True
     return
+
+def Pattern8_2(pdf_file, csv_output):
+    print("Pattern8_2")
+    cols = ['65,285,361,403,481,562,630']
+    cols *= 128
+    should_start_ignore = False
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=cols)
+    date_pattern = r"\d{2}/\d{2}/\d{2}"
+    df_total = pd.DataFrame()
+    for i in range(tables.n):
+        df = tables[i].df
+        j = 0
+        merged_row = []
+        if i==0:
+            merged_row = []
+        while j < (len(df)):
+            date_match = re.search(date_pattern,df.loc[j,0])
+            if date_match:
+                if len(df.loc[j,0]) >8:
+                    # print(df.loc[j])
+                    df.loc[j,1] = df.loc[j,0][8:]+df.loc[j,1]
+                    df.loc[j,0] = df.loc[j,0][0:8]
+                    # print(df.loc[j])
+                    # print("*"*20)
+                merged_row.append(df.loc[j])
+                j+=1
+                continue
+            elif df.loc[j,0] == "" and df.loc[j,2] == "" and df.loc[j,1] != "":
+                merged_row.append(df.loc[j])
+                j+=1
+                continue
+            j+=1
+            
+        df = pd.DataFrame(merged_row)
+        df_total =  pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    # df_total.to_csv("csv_output2.csv" ,mode='a',index=False,header=False)
+    j = 0
+    merged_row = [["Date","Narration","Chq./Ref.No.","Value Dt","Withdrawal Amt.","Deposit Amt.","Closing Balance"]]
+    while j < (len(df_total)):
+        date_match = re.search(date_pattern,df_total.loc[j,0])
+        if date_match and df_total.loc[j,6] != "":
+            k = j+1
+            new_row = df_total.loc[j]
+            if k<(len(df_total)):
+                next_date_match = re.search(date_pattern,df_total.loc[k,0])
+            while k<(len(df_total)) and  not next_date_match:
+                if("This is a computer generated statement" in df_total.loc[k,5]):
+                    break
+                new_row += '\n' + df_total.loc[k]
+                j+=1
+                k+=1
+                if k<(len(df_total)):
+                    next_date_match = re.search(date_pattern,df_total.loc[k,0])
+            merged_row.append(new_row)
+        j+=1
+    df = pd.DataFrame(merged_row)
+    df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True
+    return
+
 # Done
 # HORIZON HIGH ~ HDFC ok.pdf
 # pattern: "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
@@ -493,7 +556,8 @@ def Pattern8(pdf_file, csv_output):
     pattern_text = "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
-
+    Pattern8_2(pdf_file, csv_output)
+    return
     Pattern8_1(pdf_file, csv_output)
     return
     print("Pattern8")
