@@ -271,25 +271,90 @@ def Pattern4(pdf_file, csv_output):
             df.to_csv(csv_output ,mode='a',index=False,header=False)
             Success = True
     return
+
+def Pattern5_1(pdf_file, csv_output):
+    cols = ['37,83,345,432,496,559']
+    cols *= 128
+
+    tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
+    should_end = False
+    date_pattern = r'(\d{2})-(\d{2})-(\d{4})'
+    df_total = pd.DataFrame()
+    for i in range(tables.n):
+        # if (i==(tables.n-2)):
+        # camelot.plot(tables[i], kind='grid')
+        # plt.show(block=True)
+        df = tables[i].df
+        # df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
+        if len(df.columns) > 2 and len(df.columns) < 6:
+            df.insert(2, "Chq. no", "")
+        
+        merged_rows = []  # List to store the merged rows
+        j=0
+        while j<len(df):
+            date_match = re.search(date_pattern,df.loc[j,0])
+            if len(df.loc[j]) < 6:
+                j+=1
+                continue
+            if  date_match:
+                merged_rows.append(df.loc[j])
+                j+=1
+                continue
+            elif df.loc[j,0] == "" and df.loc[j,3] == "" and df.loc[j,1] != "":
+                merged_rows.append(df.loc[j])
+                j+=1
+                continue
+            j+=1
+        df = pd.DataFrame(merged_rows)
+        df_total =  pd.concat([df_total, df], axis=0).reset_index(drop=True)
+        
+    j = 0
+    merged_row = [["Date","Particulars","Chq. no","Withdrawals","Deposits","Balance"]]
+    while j < (len(df_total)):
+        date_match = re.search(date_pattern,df_total.loc[j,0])
+        if date_match:
+            k = j+1
+            new_row = df_total.loc[j]
+            if k<(len(df_total)):
+                next_date_match = re.search(date_pattern,df_total.loc[k,0])
+            while k<(len(df_total)) and  not next_date_match:
+                new_row += '\n' + df_total.loc[k]
+                j+=1
+                k+=1
+                if k<(len(df_total)):
+                    next_date_match = re.search(date_pattern,df_total.loc[k,0])
+            merged_row.append(new_row)
+        j+=1
+    df = pd.DataFrame(merged_row)
+    df.to_csv(csv_output ,mode='a',index=False,header=False)
+    global Success
+    Success = True
+    return
+
 # Done
 # 13_IDBI_2. 01.04.2021 to 13.10.2021.pdf
 # pattern: "Date\nParticulars\nChq. no\nWithdrawals\nDeposits\nBalance"
 def Pattern5(pdf_file, csv_output):
 
     pattern_text = "Date\nParticulars\nChq. no\nWithdrawals\nDeposits\nBalance"
-    if not search_keyword_in_pdf(pdf_file,pattern_text):
+    pattern_text1 = "Date Particulars Chq. no Withdrawals Deposits Balance"
+    if not search_keyword_in_pdf(pdf_file,pattern_text) and not search_keyword_in_pdf(pdf_file,pattern_text1):
         return
     print("Pattern5")
+    Pattern5_1(pdf_file, csv_output)
+    return
     cols = ['37,83,345,432,496,559']
     cols *= 128
 
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
     should_end = False
+    print(tables.n)
     for i in range(tables.n):
         # if (i==(tables.n-2)):
         # camelot.plot(tables[i], kind='grid')
         # plt.show(block=True)
-        df = tables[i].df        
+        df = tables[i].df
+        df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
         if len(df.columns) > 2 and len(df.columns) < 6:
             df.insert(2, "Chq. no", "")
         
@@ -317,8 +382,8 @@ def Pattern5(pdf_file, csv_output):
         df = df.applymap(lambda x: x.rstrip('\n'))
         # print(dfx)
         df.to_csv(csv_output ,mode='a',index=False,header=False)
-        if(should_end):
-            break
+        # if(should_end):
+        #     break
         global Success
         Success = True
     return
@@ -437,7 +502,7 @@ def Pattern8_1(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in range(tables.n):
         df = tables[i].df
-        df.to_csv("raw.csv" ,mode='a',index=False,header=False)
+        # df.to_csv("raw.csv" ,mode='a',index=False,header=False)
         j = 0
         merged_row = []
         if i==0:
@@ -467,7 +532,7 @@ def Pattern8_1(pdf_file, csv_output):
             j+=1
         df = pd.DataFrame(merged_row)
         df_total =  pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    df_total.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
+    # df_total.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
     j = 0
     merged_row = [["Date","Narration","Chq./Ref.No.","Value Dt","Withdrawal Amt.","Deposit Amt.","Closing Balance"]]
     while j < (len(df_total)):
