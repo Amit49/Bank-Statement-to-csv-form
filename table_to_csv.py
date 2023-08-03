@@ -222,7 +222,7 @@ def Pattern4(pdf_file, csv_output):
             # plt.show(block=True)
             df = df.drop(0)
             if(i==0):
-                df.loc[-1] = ["Txn Date","Value Date","Description Ref","No./Cheque","No.Branch Code","Debit", "Credit", "Balance"]  # adding a row
+                df.loc[-1] = ["Txn Date","Value Date","Description","Ref No./Cheque","No.Branch Code","Debit", "Credit", "Balance"]  # adding a row
                 df.index = df.index + 1  # shifting index
                 df.sort_index(inplace=True)     
             df.to_csv(csv_output ,mode='a',index=False,header=False)
