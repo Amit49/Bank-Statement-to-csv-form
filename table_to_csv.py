@@ -1245,6 +1245,11 @@ def Pattern18(pdf_file, csv_output):
                     df.loc[j, 2] = str2
                     # print(df.loc[j, 1])
                     # print(len(df.loc[j, 1]))
+                elif len(df.loc[j, 1]) < 1:
+                    str1 = df.loc[j, 2][:10]
+                    str2 = df.loc[j, 2][10:]
+                    df.loc[j, 1] = str1
+                    df.loc[j, 2] = str2
                 merged_row.append(df.loc[j])
             j+=1
         # df = pd.DataFrame(merged_row)
