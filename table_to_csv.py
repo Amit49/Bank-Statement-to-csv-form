@@ -8,10 +8,12 @@ import re
 import math
 import matplotlib.pyplot as plt
 from datetime import datetime
+from tqdm import tqdm
 
-# pdf_file =""
-# csv_output=""
+csv_output="output_file.csv"
 Success = False
+Bank_Name = ""
+Page_Num = ""
 def extract_tables_with_tabula(pdf_file, csv_output):
     # tables = tabula.read_pdf(pdf_file, pages="all")
     # combined_table = pd.concat(tables)
@@ -23,7 +25,7 @@ def extract_tables_with_camelot(pdf_file, csv_output):
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all", row_tol=12)
     # combined_table = pd.concat([table.df for table in tables])
     # combined_table.to_csv(csv_output, index=False)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         # camelot.plot(tables[i], kind='joint').show()
         tables[i].to_csv(csv_output ,mode='a')
 
@@ -31,18 +33,20 @@ def text_in_pdf(pdf_path):
     text = ""
     with open(pdf_path, 'rb') as file:
         pdf_reader = PyPDF2.PdfFileReader(file)
-        num_pages = pdf_reader.numPages
-
-        for page_num in range(num_pages):
-            page = pdf_reader.getPage(page_num)
-            text+= page.extractText()
+        global Page_Num
+        Page_Num = pdf_reader.numPages
+        for page in range(Page_Num):
+            page_content = pdf_reader.getPage(page)
+            text+= page_content.extractText()
     return text
+
 def search_keyword_in_pdf(pdf_path, keyword):
     with open(pdf_path, 'rb') as file:
         pdf_reader = PyPDF2.PdfFileReader(file)
-        num_pages = pdf_reader.numPages
+        global Page_Num
+        Page_Num = pdf_reader.numPages
 
-        for page_num in range(num_pages):
+        for page_num in range(Page_Num):
             page = pdf_reader.getPage(page_num)
             text = page.extractText()
             # print(text)
@@ -62,16 +66,47 @@ def search_keyword_in_pdf(pdf_path, keyword):
 # 12_The Sarvodaya Sahakari Bank Ltd_AccountStatement_ (1).pdf
 # pattern: 
 
-def Default(pdf_file, csv_output):
+def Default(pdf_file, csv_file):
 
     # pattern_text ="Tran Date Chq No Particulars Debit Credit Balance Init."
     # if not search_keyword_in_pdf(pdf_file,pattern_text):
     #     return
     print("Default")
     
+    # data_strings dictionary for bank name
+    data_strings = {
+        3: "Date Value Date ParticularsTran\nTypeCheque\nDetailsWithdrawals Deposits Balance",
+        6: "Sl\nNoTran\nIdValue\nDateTransaction\nDateTransaction\nPosted DateCheque no /\nRef NoTransaction\nRemarksWithdra\nwal (Dr)Dep",
+        7: "Sr No Value Date Transactio\nn DateCheque\nNumberTransactio\nn RemarksDebit\nAmountCredit\nAmountBalance",
+        8: "Txn Date Value DateCheque\nNoDescription CR/DRCC\nYSrl Balance (INR) Amount (INR)",
+        9: "Transaction\nDateInstrument Id Narration Debit Credit Balance",
+        11: "Transaction Details\nDate Description Amount Type",
+        12: "Balance Credit Debit Chq No. Particulars Date Value Date"
+    }
+    
+    bank_names_index={
+        3: "Federal Bank",
+        6: "ICICI Bank",
+        7: "ICICI Bank",
+        8: "IDBI Bank",
+        9: "Bank of India",
+        11: "Baroda Bank",
+        12: "Sarvodaya Sahakari Bank"
+    }
+    index = 3
+    for itr in data_strings:
+        if search_keyword_in_pdf(pdf_file,data_strings[itr]):
+            index = itr
+            break
+    
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = bank_names_index[index]
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    
     tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
-    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1")
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         df.to_csv(csv_output ,mode='a',index=False,header=False)
     return
@@ -80,11 +115,18 @@ def Default(pdf_file, csv_output):
 # 1_Baroda_1. 01.04.2021 TO 31.05.2021 OK.pdf
 # pattern: S.No Date Description Cheque\nNoDebit Credit Balance Value\nDate
 
-def Pattern1(pdf_file, csv_output):
+def Pattern1(pdf_file, csv_file):
 
     pattern_text ="S.No Date Description Cheque\nNoDebit Credit Balance Value\nDate"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
+    
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Baroda Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # # print(csv_output)
 
     print("Pattern1")
 
@@ -93,7 +135,7 @@ def Pattern1(pdf_file, csv_output):
     
     date_pattern = r"\d{2}-\d{2}-\d{4}"
     isInserted = []
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         drop_column = []
         df = tables[i].df
         j=0
@@ -132,16 +174,22 @@ def Pattern1(pdf_file, csv_output):
 # 2b_2. AXIS BANK.pdf
 # pattern: "Tran Date Chq No Particulars Debit Credit Balance Init."
 
-def Pattern2(pdf_file, csv_output):
+def Pattern2(pdf_file, csv_file):
 
     pattern_text ="Tran Date Chq No Particulars Debit Credit Balance Init"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Axis Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern2")
     column_name_appened = False
     tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all",line_scale=40)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1")
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         for index, row in df.iterrows():
                 
@@ -167,15 +215,21 @@ def Pattern2(pdf_file, csv_output):
 # Done
 # 5_ICICI BANK - SAVING ACCOUNT.pdf
 # pattern: "S No. Value Date Transaction Date Cheque Number Transaction Remarks Withdrawal Amount"
-def Pattern3(pdf_file, csv_output):
+def Pattern3(pdf_file, csv_file):
 
     pattern_text = "S No. Value Date Transaction Date Cheque Number Transaction Remarks Withdrawal Amount"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "ICICI Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern3")
     
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=15)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         if(i==0):
             df = df.drop(0)
@@ -203,20 +257,26 @@ def Pattern3(pdf_file, csv_output):
 # 10_1_1. SBI.pdf
 # pattern: "Txn\nDateValue\nDateDescription Ref\nNo./Cheque\nNo.Branch\nCodeDebit Credit Balance"
 # pattern: "Txn Date Value\nDateDescription Ref No./Cheque\nNo.Debit Credit Balance"
-def Pattern4(pdf_file, csv_output):
+def Pattern4(pdf_file, csv_file):
 
+    
     pattern_text1 ="Txn\nDateValue\nDateDescription Ref\nNo./Cheque\nNo.Branch\nCodeDebit Credit Balance"
     pattern_text2 ="Txn Date Value\nDateDescription Ref No./Cheque\nNo.Debit Credit Balance"
     if not search_keyword_in_pdf(pdf_file,pattern_text1) and not search_keyword_in_pdf(pdf_file,pattern_text2):
         return
-
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "SBI Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern4")
     global Success
     
     if search_keyword_in_pdf(pdf_file,pattern_text1):
         # extract_tables_with_camelot(pdf_file,csv_output)
         tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all",joint_tol=20)
-        for i in range(tables.n):
+        for i in tqdm(range(tables.n)):
             df = tables[i].df
             # camelot.plot(tables[i], kind='grid')
             # plt.show(block=True)
@@ -231,7 +291,7 @@ def Pattern4(pdf_file, csv_output):
     if search_keyword_in_pdf(pdf_file,pattern_text2):
         # extract_tables_with_camelot(pdf_file,csv_output)
         tables = camelot.read_pdf(pdf_file,flavor="lattice",pages="all")
-        for i in range(tables.n):
+        for i in tqdm(range(tables.n)):
             df = tables[i].df
             if(i!=0):
                 df = df.drop(0)
@@ -272,7 +332,13 @@ def Pattern4(pdf_file, csv_output):
             Success = True
     return
 
-def Pattern5_1(pdf_file, csv_output):
+def Pattern5_1(pdf_file, csv_file):
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "IDBI Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     cols = ['37,83,345,432,496,559']
     cols *= 128
 
@@ -280,7 +346,7 @@ def Pattern5_1(pdf_file, csv_output):
     should_end = False
     date_pattern = r'(\d{2})-(\d{2})-(\d{4})'
     df_total = pd.DataFrame()
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         # if (i==(tables.n-2)):
         # camelot.plot(tables[i], kind='grid')
         # plt.show(block=True)
@@ -334,12 +400,18 @@ def Pattern5_1(pdf_file, csv_output):
 # Done
 # 13_IDBI_2. 01.04.2021 to 13.10.2021.pdf
 # pattern: "Date\nParticulars\nChq. no\nWithdrawals\nDeposits\nBalance"
-def Pattern5(pdf_file, csv_output):
+def Pattern5(pdf_file, csv_file):
 
     pattern_text = "Date\nParticulars\nChq. no\nWithdrawals\nDeposits\nBalance"
     pattern_text1 = "Date Particulars Chq. no Withdrawals Deposits Balance"
     if not search_keyword_in_pdf(pdf_file,pattern_text) and not search_keyword_in_pdf(pdf_file,pattern_text1):
         return
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "IDBI Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern5")
     Pattern5_1(pdf_file, csv_output)
     return
@@ -349,7 +421,7 @@ def Pattern5(pdf_file, csv_output):
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
     should_end = False
     print(tables.n)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         # if (i==(tables.n-2)):
         # camelot.plot(tables[i], kind='grid')
         # plt.show(block=True)
@@ -391,18 +463,25 @@ def Pattern5(pdf_file, csv_output):
 # Done
 # 14_Akhand_Anand_1.4.2020 to 31.12.2020.pdf
 # pattern: "Balance Credit Debit Chq No. Particulars Date"
-def Pattern6(pdf_file, csv_output):
+def Pattern6(pdf_file, csv_file):
+
 
     pattern_text = "Balance Credit Debit Chq No. Particulars Date"
     pattern_text2 = "Akhand Anand"
     if not search_keyword_in_pdf(pdf_file,pattern_text) or not search_keyword_in_pdf(pdf_file,pattern_text2):
         return
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Akhand Anand Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern6")
     cols = ['65,250,324,409,494,585,655']
     cols *= 128
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=20,col_tol=20)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=cols)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
         # plt.show(block=True)
@@ -452,12 +531,19 @@ def Pattern6(pdf_file, csv_output):
 # Done
 # 15_INDUSLAND BANK_01.04.2021 TO 31.03.2022.pdf
 # pattern: "Date\nParticulars\nChq./Ref. No\nWithDrawal\nDeposit\nBalance"
-def Pattern7(pdf_file, csv_output):
+def Pattern7(pdf_file, csv_file):
+
 
     pattern_text = "Date\nParticulars\nChq./Ref. No\nWithDrawal\nDeposit\nBalance"
     pattern_text1 = "Date Particulars Chq./Ref.No. Withdrawl Deposit Balance"
     if not search_keyword_in_pdf(pdf_file,pattern_text) and not search_keyword_in_pdf(pdf_file,pattern_text1):
         return
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "INDUSLAND BANK"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern7")
     
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
@@ -467,7 +553,7 @@ def Pattern7(pdf_file, csv_output):
     cols *= 128
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=cols)
     last_df_row = pd.DataFrame()
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
         # plt.show(block=True)
@@ -514,7 +600,13 @@ def Pattern7(pdf_file, csv_output):
     return
 
 
-def Pattern8_1(pdf_file, csv_output):
+def Pattern8_1(pdf_file, csv_file):
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "HDFC Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern8_1")
     cols = ['65,285,361,403,481,562,630']
     cols *= 128
@@ -522,7 +614,7 @@ def Pattern8_1(pdf_file, csv_output):
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=cols)
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # df.to_csv("raw.csv" ,mode='a',index=False,header=False)
         j = 0
@@ -580,7 +672,13 @@ def Pattern8_1(pdf_file, csv_output):
     Success = True
     return
 
-def Pattern8_2(pdf_file, csv_output):
+def Pattern8_2(pdf_file, csv_file):
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "HDFC Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     print("Pattern8_2")
     cols = ['65,285,361,403,481,562,630']
     cols *= 128
@@ -588,7 +686,7 @@ def Pattern8_2(pdf_file, csv_output):
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",columns=cols)
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         j = 0
         merged_row = []
@@ -643,11 +741,18 @@ def Pattern8_2(pdf_file, csv_output):
 # Done
 # HORIZON HIGH ~ HDFC ok.pdf
 # pattern: "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
-def Pattern8(pdf_file, csv_output):
+def Pattern8(pdf_file, csv_file):
+
 
     pattern_text = "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "HDFC Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     Pattern8_2(pdf_file, csv_output)
     return
     Pattern8_1(pdf_file, csv_output)
@@ -745,12 +850,19 @@ def Pattern8(pdf_file, csv_output):
 # Done
 # 17_INDUSLAND FY 2021-22.pdf
 # pattern: "Date Description Credit Type Debit\nBalance"
-def Pattern9(pdf_file, csv_output):
+def Pattern9(pdf_file, csv_file):
+
     text = text_in_pdf(pdf_file)
     pattern_text = "Date Description Credit Type Debit\nBalance"
     if pattern_text not in text:
         return
     print("Pattern9")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "INDUSLAND BANK"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",column=cols)
     tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
     def rows_list(ind):
@@ -760,7 +872,7 @@ def Pattern9(pdf_file, csv_output):
         for split_value in split_text:
                 new_rows.append( split_value )
         return new_rows
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
         # camelot.plot(tables[i], kind='grid')
@@ -814,12 +926,19 @@ def Pattern9(pdf_file, csv_output):
 # 18_kotak ok.pdf
 # pattern: "Date Narration Chq/Ref No. Withdrawal (Dr) Deposit (Cr) Balance"
 # pattern: "Date Narration Chq /Ref. No Withdrawal(Dr) Deposit(Cr) Balance"
-def Pattern10(pdf_file, csv_output):
+def Pattern10(pdf_file, csv_file):
+
     pattern_text = r"Date.*Narration.*Chq.*Ref.*No.*Withdrawal.*(Dr).*Deposit.*(Cr).*Balance"
     # pattern_text_1 = "Date Narration Chq/Ref. No Withdrawal (Dr) Deposit (Cr) Balance"
     if not re.search(pattern_text,text_in_pdf(pdf_file)):
         return
     print("Pattern10")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Kotak Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
     date_pattern_2 = r"\d{2}-[A-Za-z]{3}-\d{2}"
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="1",col_tol=10)
@@ -870,16 +989,23 @@ def Pattern10(pdf_file, csv_output):
 # Done
 # 19_kotak_01. 01.04.2022 TO 31.08.2022.pdf
 # pattern: "# TRANSACTION TRANSACTION DETAILS CHQ / REF NO. DEBIT(₹) CREDIT(₹) BALANCE(₹)"
-def Pattern11(pdf_file, csv_output):
+def Pattern11(pdf_file, csv_file):
+
     pattern_text = "# TRANSACTION TRANSACTION DETAILS CHQ / REF NO. DEBIT(₹) CREDIT(₹) BALANCE(₹)"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern11")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Kotak Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=15)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2} [A-Za-z]{3} \d{4}"
         drop_row = []
@@ -904,17 +1030,24 @@ def Pattern11(pdf_file, csv_output):
 # Done
 # 20_kotak_2_1. 01.04.2021 TO 26.08.2021.PDF
 # pattern: "Date Narration Withdrawal (Dr)/\nDeposit (Cr)Balance Chq/Ref"
-def Pattern12(pdf_file, csv_output):
+def Pattern12(pdf_file, csv_file):
+
     pattern_text = "Date Narration Withdrawal (Dr)/\nDeposit (Cr)Balance Chq/Ref"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern12")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Kotak Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
     # print(tables.n)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r'(\d{2})-(\d{2})-(\d{4})'
         j=0
@@ -945,17 +1078,24 @@ def Pattern12(pdf_file, csv_output):
 # Done
 # 21_kotak_3. JUNE 2021.pdf
 # pattern: "Chq / Ref number Dr / Cr Amount Description Balance Dr / Cr Date Sl. No."
-def Pattern13(pdf_file, csv_output):
+def Pattern13(pdf_file, csv_file):
+
     pattern_text = "Chq / Ref number Dr / Cr Amount Description Balance Dr / Cr Date Sl. No."
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern13")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Kotak Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
     # print(tables.n)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[0], kind='contour')
         # plt.show(block = True)
@@ -1033,13 +1173,20 @@ def Pattern13(pdf_file, csv_output):
 # Done
 # 22_OpTransactionHistoryUX504-01-2023 (1).pdf
 # pattern: "NARRATION DEPOSIT(CR) DATE CHQ.NO. WITHDRAWAL(DR) BALANCE(INR)"
-def Pattern14(pdf_file, csv_output):
+def Pattern14(pdf_file, csv_file):
+
     pattern_text = "NARRATION DEPOSIT(CR) DATE CHQ.NO. WITHDRAWAL(DR) BALANCE(INR)"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern14")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Baroda Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=12)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2}/\d{2}/\d{4}"
         drop_row = []
@@ -1055,14 +1202,22 @@ def Pattern14(pdf_file, csv_output):
 # Done
 # 23_paytm_1. 01.04.2021 TO 25.08.2021.pdf
 # pattern: "DATE & TIME TRANSACTION DETAILS AMOUNT AVAILABLE BALANCE"
-def Pattern15(pdf_file, csv_output):
+def Pattern15(pdf_file, csv_file):
+
     pattern_text = "DATE & TIME TRANSACTION DETAILS AMOUNT AVAILABLE BALANCE"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern15")
+
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Paytm"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
     date_pattern = r"\d{1} [A-Za-z]{3} \d{4}"
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         j=0
         merged_row = []
@@ -1122,13 +1277,20 @@ def Pattern15(pdf_file, csv_output):
 # Done
 # 24_SURAT PEOPLE CO-PO BANK 1.4.21 TO 30.9.2021.pdf
 # pattern: "Date Particulars Withdr awals Deposits Balance"
-def Pattern16(pdf_file, csv_output):
+def Pattern16(pdf_file, csv_file):
+    
     pattern_text = "Date Particulars Withdr awals Deposits Balance"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern16")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "SURAT PEOPLE CO-PO BANK"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=12)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
         j=0
@@ -1160,13 +1322,20 @@ def Pattern16(pdf_file, csv_output):
 # Done
 # 25_Union_Bank_1.8.2021 TO 31.3.2022.pdf
 # pattern: "Tran Id Tran Date Remarks Amount (Rs.) Balance (Rs.)"
-def Pattern17(pdf_file, csv_output):
+def Pattern17(pdf_file, csv_file):
+    
     pattern_text = "Tran Id Tran Date Remarks Amount (Rs.) Balance (Rs.)"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern17")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Union Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all")
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2}/\d{2}/\d{4}"
         j=0
@@ -1198,15 +1367,22 @@ def Pattern17(pdf_file, csv_output):
 # Done
 # 26_VARCHHA BANK_01.04.2021 TO 31.03.2022.pdf
 # pattern: "TRN. Date | Value Date | Narration Chq/Ref.No Debit Credit} Closing Bal"
-def Pattern18(pdf_file, csv_output):
+def Pattern18(pdf_file, csv_file):
+    
     pattern_text = r"TRN.*Date.*Value Date.*Narration.*Chq/Ref\.No.*Debit.*Credit.*Closing Bal"
     if not re.search(pattern_text,text_in_pdf(pdf_file)):
         return
     print("Pattern18")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "VARCHHA BANK"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     cols = ['179,298,579,728,857,990,1130']
     cols *= 128
     tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
         # plt.show(block=True)
@@ -1266,15 +1442,21 @@ def Pattern18(pdf_file, csv_output):
 # Done
 # HIRVA 1.8 TO 6.8.pdf
 # pattern: "TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
-def Pattern19(pdf_file, csv_output):
-
+def Pattern19(pdf_file, csv_file):
+    
     pattern_text ="TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern19")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Federal Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     skip_first = True
     tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all",line_scale=40)
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         for index, row in df.iterrows():
             if "Date" in row[0]:
@@ -1291,17 +1473,24 @@ def Pattern19(pdf_file, csv_output):
 # Done
 # 27_BHUMI BOB 01.03.2023 TO 31.03.2023.pdf
 # pattern: "Serial/\nNoTransaction/\nDateValue/\nDateDescription Cheque/\nNumberDebit Credit Balance"
-def Pattern20(pdf_file, csv_output):
+def Pattern20(pdf_file, csv_file):
+    
     pattern_text ="Serial\nNoTransaction\nDateValue\nDateDescription Cheque\nNumberDebit Credit Balance\n"
     if not search_keyword_in_pdf(pdf_file,pattern_text):
         return
     print("Pattern20")
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Baroda Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+    # print(csv_output)
     skip_first = True
     tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=14)
     date_pattern = r"\d{2}-\d{2}-\d{4}"
     #For avoiding duplicate
     isInserted = []
-    for i in range(tables.n):
+    for i in tqdm(range(tables.n)):
         df = tables[i].df
         # df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
         j=0
@@ -1323,12 +1512,14 @@ def Pattern20(pdf_file, csv_output):
     Success = True 
     return
 def main():
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 2:
         print("Usage: python script.py <pdf_file> <csv_output>")
         return
 
     pdf_file = sys.argv[1]
-    csv_output = sys.argv[2]
+    global csv_output
+    if len(sys.argv) == 3:
+        csv_output = sys.argv[2]
      
     Pattern1(pdf_file, csv_output)
     if Success == False:
