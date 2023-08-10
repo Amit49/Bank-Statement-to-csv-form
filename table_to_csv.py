@@ -1470,6 +1470,8 @@ def Pattern19(pdf_file, csv_file):
     Success = True 
     return
 
+
+
 # Done
 # 27_BHUMI BOB 01.03.2023 TO 31.03.2023.pdf
 # pattern: "Serial/\nNoTransaction/\nDateValue/\nDateDescription Cheque/\nNumberDebit Credit Balance"
@@ -1511,6 +1513,44 @@ def Pattern20(pdf_file, csv_file):
     global Success
     Success = True 
     return
+
+# Done
+# 1690969903.pdf
+# pattern: "Transaction DetailsDateDescriptionAmountType"
+def Pattern21(pdf_file, csv_file):
+
+    pattern_text = "Transaction DetailsDateDescriptionAmountType"
+    if not search_keyword_in_pdf(pdf_file,pattern_text):
+        return
+    print("Pattern21")
+
+    # Extract the file name from the full path
+    file_name = os.path.basename(pdf_file)
+    Bank_Name = "Baroda Bank"
+    global csv_output
+    csv_output = Bank_Name+"_"+str(Page_Num)+"_"+file_name[:-4]+".csv"
+
+    date_pattern = r"\d{2}/\d{2}/\d{4}"
+    tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        j=0
+        merged_row = []
+        if i==0:
+            merged_row = [["Date","Description","Amount","Type"]]
+
+        while j < (len(df)):
+            date_match = re.search(date_pattern,df.loc[j, 0])
+            if date_match:
+                merged_row.append(df.loc[j])
+            j+=1
+        df = pd.DataFrame(merged_row)
+        df.to_csv(csv_output ,mode='a',index=False,header=False)
+
+    global Success
+    Success = True
+    return
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python script.py <pdf_file> <csv_output>")
@@ -1560,6 +1600,8 @@ def main():
         Pattern19(pdf_file, csv_output)
     if Success == False:
         Pattern20(pdf_file, csv_output)
+    if Success == False:
+        Pattern21(pdf_file, csv_output)
     if Success == False:
         Default(pdf_file, csv_output)
 
