@@ -108,6 +108,8 @@ def Default(pdf_file, csv_file):
     tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="all")
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # Remove trailing backslashes from all cells
+        df = df.applymap(lambda x: x.rstrip('\/'))
         df.to_csv(csv_output ,mode='a',index=False,header=False)
     return
 
