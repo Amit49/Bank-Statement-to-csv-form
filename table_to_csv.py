@@ -364,7 +364,6 @@ def Pattern4(pdf_file, csv_output):
 def Pattern5_1(pdf_file, csv_output):
     Bank_Name = "IDBI Bank"
     print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
-    print(__name__)
     cols = ["37,83,345,432,496,559"]
     cols *= 128
 
@@ -373,11 +372,7 @@ def Pattern5_1(pdf_file, csv_output):
     date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
-        # if (i==(tables.n-2)):
-        # camelot.plot(tables[i], kind='grid')
-        # plt.show(block=True)
         df = tables[i].df
-        # df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
         if len(df.columns) > 2 and len(df.columns) < 6:
             df.insert(2, "Chq. no", "")
 
@@ -399,7 +394,6 @@ def Pattern5_1(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_rows)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-
     j = 0
     merged_row = [
         ["Date", "Particulars", "Chq. no", "Withdrawals", "Deposits", "Balance"]
@@ -419,7 +413,16 @@ def Pattern5_1(pdf_file, csv_output):
                     next_date_match = re.search(date_pattern, df_total.loc[k, 0])
             merged_row.append(new_row)
         j += 1
+
     df = pd.DataFrame(merged_row)
+    j = 0
+    while j < len(df):
+        if df.isnull().loc[j, 5]:
+            df.loc[j, 5] = df.loc[j, 4]
+            df.loc[j, 4] = df.loc[j, 3]
+            df.loc[j, 3] = df.loc[j, 2]
+            df.loc[j, 2] = ""
+        j = j + 1
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1684,13 +1687,15 @@ def Pattern21(pdf_file, csv_output):
     Success = True
     return
 
+
 def is_pdf_file(file_path):
     try:
-        with open(file_path, 'rb') as pdf_file:
+        with open(file_path, "rb") as pdf_file:
             pdf_reader = PyPDF2.PdfReader(pdf_file)
             return True
     except PyPDF2.utils.PdfReadError:
         return False
+
 
 def testing_purpose():
     pdf_files = []
