@@ -1321,6 +1321,8 @@ def Pattern14(pdf_file, csv_output):
             date_match = re.search(date_pattern, row[0])
             if "DATE" not in row[0] and (not date_match or "Page" in row[2]):
                 drop_row.append(index)
+        if len(df.columns) == 5:
+            df.insert(2, 'chq info', "")
         df = df.drop(drop_row).reset_index(drop=True)
         df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
