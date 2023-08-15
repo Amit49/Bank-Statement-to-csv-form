@@ -183,6 +183,7 @@ def Pattern1(pdf_file, csv_output):
                     break
         # dropping empty extra column
         df.drop(drop_column, axis=1, inplace=True)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -229,6 +230,7 @@ def Pattern2(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         # tables[i].to_csv(csv_output ,mode='a')
         global Success
@@ -266,6 +268,7 @@ def Pattern3(pdf_file, csv_output):
                 prev_row = row
         df = pd.DataFrame(merged_rows)
 
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -356,6 +359,7 @@ def Pattern4(pdf_file, csv_output):
                     remainder = row[2][match.end() :]
                     row[1] = updated_string
                     row[2] = remainder
+            df = df.drop_duplicates().reset_index(drop=True)
             df.to_csv(csv_output, mode="a", index=False, header=False)
             Success = True
     return
@@ -423,6 +427,7 @@ def Pattern5_1(pdf_file, csv_output):
             df.loc[j, 3] = df.loc[j, 2]
             df.loc[j, 2] = ""
         j = j + 1
+    df = df.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -540,9 +545,6 @@ def Pattern6(pdf_file, csv_output):
                 # Merge with the previous row
                 if prev_row is not None:
                     prev_row += "\n" + row
-
-                    # print("row2")
-                    # print("row2")
             else:
                 # Add the row to the list of merged rows
                 # print(len(row))
@@ -562,6 +564,7 @@ def Pattern6(pdf_file, csv_output):
         substring_to_remove = "-------------------------------------------------------------------------------------"
 
         df = df.apply(lambda x: x.str.replace(substring_to_remove, ""))
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -638,6 +641,7 @@ def Pattern7(pdf_file, csv_output):
                 last_df_row = df.loc[j]
             j += 1
             # print(last_df_row)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -718,6 +722,7 @@ def Pattern8_1(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -792,8 +797,7 @@ def Pattern8_2(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
-    df = df.drop_duplicates()
-    df = df.reset_index(drop=True)
+    df = df.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -997,6 +1001,7 @@ def Pattern9(pdf_file, csv_output):
                 ]
                 df.index = df.index + 1  # shifting index
                 df.sort_index(inplace=True)
+            df = df.drop_duplicates().reset_index(drop=True)
             df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1074,6 +1079,7 @@ def Pattern10(pdf_file, csv_output):
             merged_row.append(df.loc[j])
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1122,7 +1128,7 @@ def Pattern11(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
-
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -1179,6 +1185,7 @@ def Pattern12(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         # print(f"Merged Row:::\n{merged_row}")
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -1286,6 +1293,7 @@ def Pattern13(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         global Success
         Success = True
@@ -1314,6 +1322,7 @@ def Pattern14(pdf_file, csv_output):
             if "DATE" not in row[0] and (not date_match or "Page" in row[2]):
                 drop_row.append(index)
         df = df.drop(drop_row).reset_index(drop=True)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1387,6 +1396,7 @@ def Pattern15(pdf_file, csv_output):
         df = pd.DataFrame(merged_row)
         df = df.apply(lambda x: x.str.replace("₹", ""))
         # print(df)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1435,6 +1445,7 @@ def Pattern16(pdf_file, csv_output):
                     merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1484,6 +1495,7 @@ def Pattern17(pdf_file, csv_output):
                     merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1569,6 +1581,7 @@ def Pattern18(pdf_file, csv_output):
         #     df.index = df.index + 1  # shifting index
         #     df.sort_index(inplace=True)
         df = pd.DataFrame(merged_row)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1597,6 +1610,7 @@ def Pattern19(pdf_file, csv_output):
                 else:
                     df.drop(index, inplace=True)
                     break
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1648,6 +1662,7 @@ def Pattern20(pdf_file, csv_output):
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1681,6 +1696,7 @@ def Pattern21(pdf_file, csv_output):
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
+        df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
 
     global Success
