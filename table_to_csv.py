@@ -66,6 +66,11 @@ def print_info(Func_Name, Bank_Name, Page_Num):
     print("Bank Name: ", Bank_Name)
     print("Page Num: ", Page_Num)
 
+# Function to remove trailing newlines
+def remove_trailing_newline(cell_value):
+    if cell_value is not None:
+        return cell_value.rstrip('\n')
+    return cell_value
 
 # Done
 # 3_Federal_1.10.2022 to 15.12.2022.pdf
@@ -796,6 +801,7 @@ def Pattern8_2(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.applymap(remove_trailing_newline)
     df = df.drop_duplicates(subset=[0, 6]).reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
