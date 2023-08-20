@@ -1427,6 +1427,8 @@ def Pattern16(pdf_file, csv_output):
     print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
     # print(csv_output)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=12)
+    df_total = pd.DataFrame()
+
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
@@ -1456,8 +1458,9 @@ def Pattern16(pdf_file, csv_output):
                     merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates(subset=[0,4]).reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
 
