@@ -333,7 +333,6 @@ def Pattern4(pdf_file, csv_output):
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
         df = df_total.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
         Success = True
     # 10_1_1. SBI.pdf
     if search_keyword_in_pdf(pdf_file, pattern_text2):
@@ -378,7 +377,6 @@ def Pattern4(pdf_file, csv_output):
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
         df = df_total.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
         Success = True
     return
 
