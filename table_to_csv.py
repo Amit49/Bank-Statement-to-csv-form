@@ -598,6 +598,8 @@ def Pattern7(pdf_file, csv_output):
     cols *= 128
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
     last_df_row = pd.DataFrame()
+    df_total = pd.DataFrame()
+
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
@@ -645,10 +647,12 @@ def Pattern7(pdf_file, csv_output):
                 last_df_row = df.loc[j]
             j += 1
             # print(last_df_row)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+
+    df = df_total.drop_duplicates(subset=[0,4,5]).reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
 
 
