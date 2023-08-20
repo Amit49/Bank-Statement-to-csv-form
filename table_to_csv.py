@@ -796,7 +796,7 @@ def Pattern8_2(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
-    df = df.drop_duplicates().reset_index(drop=True)
+    df = df.drop_duplicates(subset=[0, 6]).reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
