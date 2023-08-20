@@ -373,7 +373,7 @@ def Pattern5_1(pdf_file, csv_output):
 
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
     should_end = False
-    date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
+    date_pattern = r"(\d{2})(-|/)(\d{2})(-|/)(\d{4})"
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -384,17 +384,15 @@ def Pattern5_1(pdf_file, csv_output):
         j = 0
         while j < len(df):
             date_match = re.search(date_pattern, df.loc[j, 0])
-            if len(df.loc[j]) < 6:
-                j += 1
-                continue
-            if date_match:
+            if date_match and len(df.loc[j]) > 5:
                 merged_rows.append(df.loc[j])
-                j += 1
-                continue
-            elif df.loc[j, 0] == "" and df.loc[j, 3] == "" and df.loc[j, 1] != "":
+            elif (
+                len(df.loc[j]) > 5
+                and df.loc[j, 0] == ""
+                and df.loc[j, 3] == ""
+                and df.loc[j, 1] != ""
+            ):
                 merged_rows.append(df.loc[j])
-                j += 1
-                continue
             j += 1
         df = pd.DataFrame(merged_rows)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
@@ -519,7 +517,8 @@ def Pattern6(pdf_file, csv_output):
     # print("Pattern6")
     cols = ["65,250,324,409,494,585,655"]
     cols *= 128
-    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=20,col_tol=20)
+    # tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all",stream="True")
+    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=12)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -539,7 +538,7 @@ def Pattern6(pdf_file, csv_output):
                 continue
 
             if row[0] == "" and "Balance" not in row[1]:
-                if len(row[2]) != 6 and len(row[2]) != 0:
+                if len(row[2]) > 6:
                     row[1] += row[2]
                     row[2] = ""
                 # Merge with the previous row
@@ -1322,7 +1321,7 @@ def Pattern14(pdf_file, csv_output):
             if "DATE" not in row[0] and (not date_match or "Page" in row[2]):
                 drop_row.append(index)
         if len(df.columns) == 5:
-            df.insert(2, 'chq info', "")
+            df.insert(2, "chq info", "")
         df = df.drop(drop_row).reset_index(drop=True)
         df = df.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
