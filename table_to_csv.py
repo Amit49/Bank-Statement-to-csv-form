@@ -1233,7 +1233,9 @@ def Pattern13(pdf_file, csv_output):
     Bank_Name = "Kotak Bank"
     print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
     # print(csv_output)
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
+    cols = ["68,216,355,501,603,689,781,836"]
+    cols *= 128
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all",column=cols)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
@@ -1242,7 +1244,9 @@ def Pattern13(pdf_file, csv_output):
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[0], kind='contour')
+        # camelot.plot(tables[i], kind='grid')
         # plt.show(block = True)
+        # continue
         # date_pattern = r"\d{2}-d{2}-\d{4}"
         date_pattern = r"\d{2}/\d{2}/\d{4}"
         j = 0
@@ -1289,7 +1293,7 @@ def Pattern13(pdf_file, csv_output):
                 j += 1
 
         df = pd.DataFrame(merged_row)
-        df.to_csv("test_temp.csv", mode="a", index=False, header=False)
+        # df.to_csv("test_temp.csv", mode="a", index=False, header=False)
         if len(df.columns) == 8:
             date_pattern = r"\d{2}/\d{2}/\d{4}"
             df = df.reset_index(drop=True)
