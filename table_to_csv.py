@@ -120,6 +120,7 @@ def Default(pdf_file, csv_output):
     print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
 
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # Remove trailing backslashes from all cells
@@ -148,6 +149,7 @@ def Pattern1(pdf_file, csv_output):
 
     date_pattern = r"\d{2}-\d{2}-\d{4}"
     isInserted = []
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         drop_column = []
         df = tables[i].df
@@ -188,10 +190,11 @@ def Pattern1(pdf_file, csv_output):
                     break
         # dropping empty extra column
         df.drop(drop_column, axis=1, inplace=True)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
 
 
@@ -211,6 +214,7 @@ def Pattern2(pdf_file, csv_output):
     # print("Pattern2")
     column_name_appened = False
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale=40)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         for index, row in df.iterrows():
@@ -235,11 +239,12 @@ def Pattern2(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        # tables[i].to_csv(csv_output ,mode='a')
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    # tables[i].to_csv(csv_output ,mode='a')
+    global Success
+    Success = True
     return
 
 
@@ -256,6 +261,7 @@ def Pattern3(pdf_file, csv_output):
     # print("Pattern3")
 
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=15)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         if i == 0:
@@ -272,11 +278,11 @@ def Pattern3(pdf_file, csv_output):
                 merged_rows.append(row)
                 prev_row = row
         df = pd.DataFrame(merged_rows)
-
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
         # tables[i].to_csv(csv_output ,mode='a')
     return
 
@@ -305,6 +311,7 @@ def Pattern4(pdf_file, csv_output):
     if search_keyword_in_pdf(pdf_file, pattern_text1):
         # extract_tables_with_camelot(pdf_file,csv_output)
         tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", joint_tol=20)
+        df_total = pd.DataFrame()
         for i in tqdm(range(tables.n)):
             df = tables[i].df
             # camelot.plot(tables[i], kind='grid')
@@ -323,12 +330,16 @@ def Pattern4(pdf_file, csv_output):
                 ]  # adding a row
                 df.index = df.index + 1  # shifting index
                 df.sort_index(inplace=True)
-            df.to_csv(csv_output, mode="a", index=False, header=False)
-            Success = True
+            df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+        df = df_total.drop_duplicates().reset_index(drop=True)
+        df.to_csv(csv_output, mode="a", index=False, header=False)
+        global Success
+        Success = True
     # 10_1_1. SBI.pdf
     if search_keyword_in_pdf(pdf_file, pattern_text2):
         # extract_tables_with_camelot(pdf_file,csv_output)
         tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+        df_total = pd.DataFrame()
         for i in tqdm(range(tables.n)):
             df = tables[i].df
             if i != 0:
@@ -364,9 +375,11 @@ def Pattern4(pdf_file, csv_output):
                     remainder = row[2][match.end() :]
                     row[1] = updated_string
                     row[2] = remainder
-            df = df.drop_duplicates().reset_index(drop=True)
-            df.to_csv(csv_output, mode="a", index=False, header=False)
-            Success = True
+            df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+        df = df_total.drop_duplicates().reset_index(drop=True)
+        df.to_csv(csv_output, mode="a", index=False, header=False)
+        global Success
+        Success = True
     return
 
 
@@ -525,6 +538,7 @@ def Pattern6(pdf_file, csv_output):
     # tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all",stream="True")
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="all",row_tol=12)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
@@ -568,10 +582,11 @@ def Pattern6(pdf_file, csv_output):
         substring_to_remove = "-------------------------------------------------------------------------------------"
 
         df = df.apply(lambda x: x.str.replace(substring_to_remove, ""))
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
 
 
@@ -951,6 +966,7 @@ def Pattern9(pdf_file, csv_output):
             new_rows.append(split_value)
         return new_rows
 
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
@@ -1113,6 +1129,7 @@ def Pattern11(pdf_file, csv_output):
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2} [A-Za-z]{3} \d{4}"
@@ -1137,10 +1154,11 @@ def Pattern11(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
 
 
@@ -1161,6 +1179,7 @@ def Pattern12(pdf_file, csv_output):
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
     # print(tables.n)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
@@ -1194,10 +1213,11 @@ def Pattern12(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         # print(f"Merged Row:::\n{merged_row}")
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
 
 
@@ -1220,6 +1240,7 @@ def Pattern13(pdf_file, csv_output):
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
     # print(tables.n)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[0], kind='contour')
@@ -1302,10 +1323,11 @@ def Pattern13(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
-        global Success
-        Success = True
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
 
 
@@ -1322,6 +1344,7 @@ def Pattern14(pdf_file, csv_output):
     print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
     # print(csv_output)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=12)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2}/\d{2}/\d{4}"
@@ -1333,8 +1356,9 @@ def Pattern14(pdf_file, csv_output):
         if len(df.columns) == 5:
             df.insert(2, "chq info", "")
         df = df.drop(drop_row).reset_index(drop=True)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
 
@@ -1353,6 +1377,7 @@ def Pattern15(pdf_file, csv_output):
     # print(csv_output)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
     date_pattern = r"\d{1} [A-Za-z]{3} \d{4}"
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         j = 0
@@ -1407,8 +1432,9 @@ def Pattern15(pdf_file, csv_output):
         df = pd.DataFrame(merged_row)
         df = df.apply(lambda x: x.str.replace("₹", ""))
         # print(df)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return
@@ -1478,6 +1504,7 @@ def Pattern17(pdf_file, csv_output):
     print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
     # print(csv_output)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         date_pattern = r"\d{2}/\d{2}/\d{4}"
@@ -1509,8 +1536,9 @@ def Pattern17(pdf_file, csv_output):
                     merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
 
@@ -1532,6 +1560,7 @@ def Pattern18(pdf_file, csv_output):
     cols = ["179,298,579,728,857,990,1130"]
     cols *= 128
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # camelot.plot(tables[i], kind='textedge')
@@ -1595,8 +1624,9 @@ def Pattern18(pdf_file, csv_output):
         #     df.index = df.index + 1  # shifting index
         #     df.sort_index(inplace=True)
         df = pd.DataFrame(merged_row)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
 
@@ -1615,6 +1645,7 @@ def Pattern19(pdf_file, csv_output):
     # print(csv_output)
     skip_first = True
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale=40)
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         for index, row in df.iterrows():
@@ -1624,8 +1655,9 @@ def Pattern19(pdf_file, csv_output):
                 else:
                     df.drop(index, inplace=True)
                     break
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return
@@ -1648,6 +1680,7 @@ def Pattern20(pdf_file, csv_output):
     date_pattern = r"\d{2}-\d{2}-\d{4}"
     # For avoiding duplicate
     isInserted = []
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
@@ -1676,8 +1709,9 @@ def Pattern20(pdf_file, csv_output):
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return
@@ -1697,6 +1731,7 @@ def Pattern21(pdf_file, csv_output):
 
     date_pattern = r"\d{2}/\d{2}/\d{4}"
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+    df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         j = 0
@@ -1710,8 +1745,9 @@ def Pattern21(pdf_file, csv_output):
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
-        df = df.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
 
     global Success
     Success = True
