@@ -541,6 +541,7 @@ def Pattern6(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
         # camelot.plot(tables[i], kind='textedge')
         # plt.show(block=True)
         date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
@@ -551,7 +552,7 @@ def Pattern6(pdf_file, csv_output):
             if check:
                 merged_rows.append(row)
                 break
-            if "Closing" in row[1] and not check:
+            if "Closing Balance" in row[1] and not check:
                 merged_rows.append(row)
                 check = True
                 continue
