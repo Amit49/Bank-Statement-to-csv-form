@@ -66,11 +66,13 @@ def print_info(Func_Name, Bank_Name, Page_Num):
     print("Bank Name: ", Bank_Name)
     print("Page Num: ", Page_Num)
 
+
 # Function to remove trailing newlines
 def remove_trailing_newline(cell_value):
     if cell_value is not None:
-        return cell_value.rstrip('\n')
+        return cell_value.rstrip("\n")
     return cell_value
+
 
 # Done
 # 3_Federal_1.10.2022 to 15.12.2022.pdf
@@ -283,7 +285,7 @@ def Pattern3(pdf_file, csv_output):
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
-        # tables[i].to_csv(csv_output ,mode='a')
+    # tables[i].to_csv(csv_output ,mode='a')
     return
 
 
@@ -662,7 +664,7 @@ def Pattern7(pdf_file, csv_output):
             # print(last_df_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
 
-    df = df_total.drop_duplicates(subset=[0,4,5]).reset_index(drop=True)
+    df = df_total.drop_duplicates(subset=[0, 4, 5]).reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1235,7 +1237,7 @@ def Pattern13(pdf_file, csv_output):
     # print(csv_output)
     cols = ["68,216,355,501,603,689,781,836"]
     cols *= 128
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all",column=cols)
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", column=cols)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
@@ -1487,7 +1489,7 @@ def Pattern16(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    df = df_total.drop_duplicates(subset=[0,4]).reset_index(drop=True)
+    df = df_total.drop_duplicates(subset=[0, 4]).reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -1756,6 +1758,66 @@ def Pattern21(pdf_file, csv_output):
     return
 
 
+# Done
+# 7_ICICI_detailStatement_19-5-2021@11-44-35.pdf
+# FASHION.FORWARD.01.01.2023.TO.28.02.2023
+# pattern: "Sr No Value Date Transactio\nn DateCheque\nNumberTransactio\nn RemarksDebit\nAmountCredit\nAmountBalance(IN\nR)"
+def Pattern22(pdf_file, csv_output):
+    # pattern_text = (
+    #     r"Sr.*No.*Value.*Date.*Transactio.*DateCheque.*NumberTransactio.*RemarksDebit.*AmountCredit.*AmountBalance"
+    # )
+    # # pattern_text_1 = "Date Narration Chq/Ref. No Withdrawal (Dr) Deposit (Cr) Balance"
+    # if not re.search(pattern_text, text_in_pdf(pdf_file)):
+    #     return
+
+    pattern_text = "Sr No Value Date Transactio\nn DateCheque\nNumberTransactio\nn RemarksDebit\nAmountCredit\nAmountBalance(IN\nR)"
+    if not search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "ICICI Bank"
+    print_info(inspect.currentframe().f_code.co_name, Bank_Name, Page_Num)
+
+    date_pattern = r"\d{2}-[A-Za-z]{3}-\n\d{4}"
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # Remove trailing backslashes from all cells
+        df = df.applymap(lambda x: x.rstrip("\/"))
+        j = 0
+        merged_row = []
+        if i == 0:
+            merged_row = [
+                [
+                    "Sr No",
+                    "Value Date",
+                    "Transaction Date",
+                    "Cheque Number",
+                    "Transaction Remarks",
+                    "Debit Amount",
+                    "Credit Amount",
+                    "Balance(INR)",
+                ]
+            ]
+
+        while j < (len(df)):
+            date_match = re.search(date_pattern, df.loc[j, 1])
+            if date_match:
+                if "EP\n" in df.loc[j, 4]:
+                    df.loc[j, 4] = df.loc[j, 4].replace("EP\n", "")
+                merged_row.append(df.loc[j])
+            j += 1
+        df = pd.DataFrame(merged_row)
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+
+    df = df_total.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+
+    global Success
+    Success = True
+    return
+
+
 def is_pdf_file(file_path):
     try:
         with open(file_path, "rb") as pdf_file:
@@ -1798,6 +1860,7 @@ def testing_purpose():
         Pattern19,
         Pattern20,
         Pattern21,
+        Pattern22,
         Default,
     ]
     for pdf_file in pdf_files:
@@ -1844,6 +1907,7 @@ def main():
         Pattern19,
         Pattern20,
         Pattern21,
+        Pattern22,
         Default,
     ]
     for pattern in patterns:
