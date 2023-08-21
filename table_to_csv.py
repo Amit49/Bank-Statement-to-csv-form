@@ -1257,6 +1257,7 @@ def Pattern13(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # df.to_csv("test_temp.csv", mode="a", index=False, header=False)
         # camelot.plot(tables[0], kind='contour')
         # camelot.plot(tables[i], kind='grid')
         # plt.show(block = True)
@@ -1311,7 +1312,6 @@ def Pattern13(pdf_file, csv_output):
         if len(df.columns) == 8:
             date_pattern = r"\d{2}/\d{2}/\d{4}"
             df = df.reset_index(drop=True)
-            # print(df)
             l = 0
             while l < (len(df)):
                 # print(df.loc[j])
@@ -1325,6 +1325,7 @@ def Pattern13(pdf_file, csv_output):
                 l += 1
         if len(df.columns) == 9:
             df = df.drop(2, axis=1)
+            df = df.rename(columns={3:2, 4:3,5:4, 6:5,7:6,8:7})
         if column_name_appened is False:
             column_name_appened = True
             df.loc[-1] = [
