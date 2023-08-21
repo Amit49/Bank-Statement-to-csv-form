@@ -1200,6 +1200,15 @@ def Pattern12(pdf_file, csv_output):
             date_match = re.search(date_pattern, df.loc[j, 0])
             if date_match:
                 # print(f"Row:::\n{df.loc[j+1]}")
+                if df.loc[j, 0] != "" and df.loc[j, 1] != "" and df.loc[j, 2] == "" and df.loc[j+1, 2] != "":
+                    # original_string = "This is a sample string with spaces"
+                    last_space_index = df.loc[j, 1].rfind(" ")  # Find the index of the last space
+
+                    if last_space_index != -1:
+                        str1 = df.loc[j, 1][:last_space_index]  # Extract the substring after the last space
+                        str2 = df.loc[j, 1][last_space_index + 1:]  # Extract the substring after the last space
+                        df.loc[j, 1] = str1
+                        df.loc[j, 2] = str2
                 if df.loc[j + 1, 0] == "" and (
                     df.loc[j + 1, 1] != "" or df.loc[j + 1, 2] != ""
                 ):
@@ -1212,7 +1221,6 @@ def Pattern12(pdf_file, csv_output):
                     merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
-        # print(f"Merged Row:::\n{merged_row}")
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
