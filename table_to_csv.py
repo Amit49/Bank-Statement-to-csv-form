@@ -825,7 +825,7 @@ def Pattern8_2(pdf_file, csv_output):
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(remove_trailing_newline)
-    df = df.drop_duplicates(subset=[0, 6]).reset_index(drop=True)
+    df = df.drop_duplicates(subset=[0, 4, 5, 6]).reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
