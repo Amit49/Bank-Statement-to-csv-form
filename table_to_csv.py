@@ -586,7 +586,7 @@ def Pattern6(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total.drop_duplicates().reset_index(drop=True)
     df = df.applymap(remove_trailing_newline)
-    if len(df.columns)>7:
+    if len(df.columns) > 7:
         df.drop(7, axis=1, inplace=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
@@ -1204,13 +1204,24 @@ def Pattern12(pdf_file, csv_output):
             date_match = re.search(date_pattern, df.loc[j, 0])
             if date_match:
                 # print(f"Row:::\n{df.loc[j+1]}")
-                if df.loc[j, 0] != "" and df.loc[j, 1] != "" and df.loc[j, 2] == "" and df.loc[j+1, 2] != "":
+                if (
+                    df.loc[j, 0] != ""
+                    and df.loc[j, 1] != ""
+                    and df.loc[j, 2] == ""
+                    and df.loc[j + 1, 2] != ""
+                ):
                     # original_string = "This is a sample string with spaces"
-                    last_space_index = df.loc[j, 1].rfind(" ")  # Find the index of the last space
+                    last_space_index = df.loc[j, 1].rfind(
+                        " "
+                    )  # Find the index of the last space
 
                     if last_space_index != -1:
-                        str1 = df.loc[j, 1][:last_space_index]  # Extract the substring after the last space
-                        str2 = df.loc[j, 1][last_space_index + 1:]  # Extract the substring after the last space
+                        str1 = df.loc[j, 1][
+                            :last_space_index
+                        ]  # Extract the substring after the last space
+                        str2 = df.loc[j, 1][
+                            last_space_index + 1 :
+                        ]  # Extract the substring after the last space
                         df.loc[j, 1] = str1
                         df.loc[j, 2] = str2
                 if df.loc[j + 1, 0] == "" and (
@@ -1320,12 +1331,13 @@ def Pattern13(pdf_file, csv_output):
                 if df.loc[l, 1] == "":
                     # print(df.loc[j])
                     date_matches = re.search(date_pattern, df.loc[l, 0])
-                    df.loc[l, 1] = df.loc[l, 0][date_matches.start() : 10]
+                    # print(date_matches.group())
+                    df.loc[l, 1] = date_matches.group()
                     df.loc[l, 0] = df.loc[l, 0][: date_matches.start()]
                 l += 1
         if len(df.columns) == 9:
             df = df.drop(2, axis=1)
-            df = df.rename(columns={3:2, 4:3,5:4, 6:5,7:6,8:7})
+            df = df.rename(columns={3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7})
         if column_name_appened is False:
             column_name_appened = True
             df.loc[-1] = [
