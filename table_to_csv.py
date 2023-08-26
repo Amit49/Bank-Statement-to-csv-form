@@ -1514,7 +1514,7 @@ def Pattern16(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    df = df_total.drop_duplicates(subset=[0,2,3,4]).reset_index(drop=True)
+    df = df_total.drop_duplicates(subset=[0,2,3,4],keep='last').reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
