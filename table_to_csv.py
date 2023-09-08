@@ -16,6 +16,8 @@ Success = False
 Bank_Name = ""
 Page_Num = ""
 
+# to-do: add bankwise recognition
+
 
 def extract_tables_with_tabula(pdf_file, csv_output):
     # tables = tabula.read_pdf(pdf_file, pages="all")
