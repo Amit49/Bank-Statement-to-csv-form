@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from tqdm import tqdm
 import inspect
+import csv
 
 csv_output = "output_file.csv"
 Success = False
@@ -64,6 +65,17 @@ def search_keyword_in_pdf(pdf_path, keyword):
 
 
 def print_info(Func_Name, Bank_Name, Page_Num):
+    # data_list = [sys.argv[1],Func_Name]
+    # # Specify the name of the CSV file you want to write to
+    # csv_filename = "example.csv"
+
+    # # Open the CSV file in write mode
+    # with open(csv_filename, mode='a', newline='') as file:
+    #     # Create a CSV writer object
+    #     writer = csv.writer(file)
+    
+    #     # Write the list as a row in the CSV file
+    #     writer.writerow(data_list)
     print("Function Name: ", Func_Name)
     print("Bank Name: ", Bank_Name)
     print("Page Num: ", Page_Num)
@@ -1755,9 +1767,11 @@ def Pattern20(pdf_file, csv_output):
 # Done
 # 1690969903.pdf
 # pattern: "Transaction DetailsDateDescriptionAmountType"
+# pattern: "Transaction Details\nDate Description Amount Type"
 def Pattern21(pdf_file, csv_output):
-    pattern_text = "Transaction DetailsDateDescriptionAmountType"
-    if not search_keyword_in_pdf(pdf_file, pattern_text):
+    pattern_text1 = "Transaction DetailsDateDescriptionAmountType"
+    pattern_text2 = "Transaction Details\nDate Description Amount Type"
+    if not search_keyword_in_pdf(pdf_file, pattern_text1) and not search_keyword_in_pdf(pdf_file, pattern_text2):
         return
     # print("Pattern21")
 
