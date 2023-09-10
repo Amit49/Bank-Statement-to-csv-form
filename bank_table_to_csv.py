@@ -11,6 +11,7 @@ import idbi_bank
 import indusind_bank
 import kotak_bank
 import mehsana_bank
+import paytm_bank
 
 csv_output = ""
 
@@ -45,6 +46,8 @@ def findPatternForBank():
         kotak_bank.initialize(pdf_file, csv_output)
     elif bank_num == 12:
         mehsana_bank.initialize(pdf_file, csv_output)
+    elif bank_num == 13:
+        paytm_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
 
