@@ -40,9 +40,11 @@ def Default(pdf_file, csv_output):
 # Done
 # HIRVA 1.8 TO 6.8.pdf
 # pattern: "TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
+# pattern: "Date\nValue Date\nParticulars\nTran\nType\nCheque\nDetails\nWithdrawals\nDeposits\nBalance\nDr/Cr"
 def Pattern19(pdf_file, csv_output):
-    pattern_text = "TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
-    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+    pattern_text1 = "TypeTran ID Cheque Details Withdrawals Deposits BalanceDr/\nCr"
+    pattern_text2 = "Date\nValue Date\nParticulars\nTran\nType\nCheque\nDetails\nWithdrawals\nDeposits\nBalance\nDr/Cr"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text1) and not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
         return
     # print("Pattern19")
 
