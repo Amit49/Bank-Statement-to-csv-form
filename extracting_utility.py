@@ -28,6 +28,11 @@ def search_keyword_in_pdf(pdf_path, keyword):
                 return True
 
     return False
+def get_page_num(pdf_path):
+    pdf_reader = PyPDF2.PdfFileReader(open(pdf_path, "rb"))
+    global Page_Num
+    Page_Num = pdf_reader.numPages
+    return Page_Num
 
 def print_info(Func_Name, Bank_Name, Page_Num):
     # data_list = [sys.argv[1],Func_Name]
