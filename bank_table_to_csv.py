@@ -6,12 +6,14 @@ import bank_of_india
 import canera_bank
 import federal_bank
 import hdfc_bank
+import icici_bank
 
 csv_output = ""
 
+
 def findPatternForBank():
     global csv_output
-    
+
     pdf_file = sys.argv[1]
     csv_output = sys.argv[2]
     bank_num = int(sys.argv[3])
@@ -29,11 +31,17 @@ def findPatternForBank():
         federal_bank.initialize(pdf_file, csv_output)
     elif bank_num == 7:
         hdfc_bank.initialize(pdf_file, csv_output)
+    elif bank_num == 8:
+        icici_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
+
+
 def main():
     if len(sys.argv) != 4:
-        print("Usage: python bank_table_to_csv.py <pdf_file> <csv_output> <bank_number>")
+        print(
+            "Usage: python bank_table_to_csv.py <pdf_file> <csv_output> <bank_number>"
+        )
         return
     # Bank number map
     # 1 = AKHAND ANAND BANK
@@ -56,7 +64,7 @@ def main():
     # 18 = UJJVALA BANK
     # 19 = UNION BANK
     # 20 = VARCHHA BANK
-    
+
     findPatternForBank()
 
     print("Tables extracted and saved to", csv_output)
