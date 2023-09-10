@@ -5,6 +5,7 @@ import bank_of_baroda
 import bank_of_india
 import canera_bank
 import federal_bank
+import hdfc_bank
 
 csv_output = ""
 
@@ -26,6 +27,8 @@ def findPatternForBank():
         canera_bank.initialize(pdf_file, csv_output)
     elif bank_num == 6:
         federal_bank.initialize(pdf_file, csv_output)
+    elif bank_num == 7:
+        hdfc_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
 def main():
