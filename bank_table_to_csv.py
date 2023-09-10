@@ -8,6 +8,7 @@ import federal_bank
 import hdfc_bank
 import icici_bank
 import idbi_bank
+import indusind_bank
 
 csv_output = ""
 
@@ -36,6 +37,8 @@ def findPatternForBank():
         icici_bank.initialize(pdf_file, csv_output)
     elif bank_num == 9:
         idbi_bank.initialize(pdf_file, csv_output)
+    elif bank_num == 10:
+        indusind_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
 
