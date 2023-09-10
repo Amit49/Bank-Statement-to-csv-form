@@ -2,6 +2,8 @@ import sys
 import akand_anand_bank
 import axis_bank
 import bank_of_baroda
+import bank_of_india
+import canera_bank
 
 csv_output = ""
 
@@ -10,19 +12,44 @@ def findPatternForBank():
     
     pdf_file = sys.argv[1]
     csv_output = sys.argv[2]
-    bank_name = sys.argv[3].lower()
-    if bank_name == "akhand anand bank" or bank_name == "akhand anand":
+    bank_num = int(sys.argv[3])
+    if bank_num == 1:
         akand_anand_bank.initialize(pdf_file, csv_output)
-    elif bank_name == "axis bank" or bank_name == "axis":
+    elif bank_num == 2:
         axis_bank.initialize(pdf_file, csv_output)
-    elif bank_name == "bank of baroda" or bank_name == "baroda" or bank_name == "bob":
+    elif bank_num == 3:
         bank_of_baroda.initialize(pdf_file, csv_output)
+    elif bank_num == 4:
+        bank_of_india.initialize(pdf_file, csv_output)
+    elif bank_num == 5:
+        canera_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
 def main():
     if len(sys.argv) != 4:
-        print("Usage: python script.py <pdf_file> <csv_output> <bank_name>")
+        print("Usage: python bank_table_to_csv.py <pdf_file> <csv_output> <bank_number>")
         return
+    # Bank number map
+    # 1 = AKHAND ANAND BANK
+    # 2 = AXIS BANK
+    # 3 = BANK OF BARODA
+    # 4 = BANK OF INDIA
+    # 5 = CANERA BANK
+    # 6 = FEDRALBank
+    # 7 = HDFC BANK
+    # 8 = ICICI bank
+    # 9 = IDBI bank
+    # 10 = INDUSLAND bank
+    # 11 = KOTAK bank
+    # 12 = MEHASANA COP OP. BANK
+    # 13 = PAYTM BANK
+    # 14 = PUNJAB NATIONAL BANK
+    # 15 = SARVODAY BANK
+    # 16 = STATE BANK OF INDIA
+    # 17 = THE SURAT PEOPLE
+    # 18 = UJJVALA BANK
+    # 19 = UNION BANK
+    # 20 = VARCHHA BANK
     
     findPatternForBank()
 
