@@ -33,7 +33,7 @@ def Pattern4(pdf_file, csv_output):
     ) and not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
         return
 
-    Bank_Name = "SBI (State Bank of India)"
+    Bank_Name = "State Bank of India (SBI)"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
