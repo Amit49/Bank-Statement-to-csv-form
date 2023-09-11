@@ -19,7 +19,7 @@ def initialize(pdf_file, csv_output):
 
 
 def Default(pdf_file, csv_output):
-    Bank_Name = "Canera Bank"
+    Bank_Name = "Ujjivan Small Finance Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name,
         Bank_Name,
