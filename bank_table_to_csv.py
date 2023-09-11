@@ -17,6 +17,7 @@ import sarvoday_bank
 import sbi_bank
 import spcb_bank
 import ujjivan_bank
+import union_bank
 
 csv_output = ""
 
@@ -63,6 +64,8 @@ def findPatternForBank():
         spcb_bank.initialize(pdf_file, csv_output)
     elif bank_num == 18:
         ujjivan_bank.initialize(pdf_file, csv_output)
+    elif bank_num == 19:
+        union_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
 
