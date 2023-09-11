@@ -180,7 +180,7 @@ def Pattern21(pdf_file, csv_output):
     Bank_Name = "Baroda Bank"
     extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
 
-    date_pattern = r"\d{2}/\d{2}/\d{4}"
+    date_pattern = r"\d{2}(/|-)\d{2}(/|-)\d{4}"
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -196,6 +196,7 @@ def Pattern21(pdf_file, csv_output):
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
+        # print(df)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
