@@ -12,6 +12,7 @@ import indusind_bank
 import kotak_bank
 import mehsana_bank
 import paytm_bank
+import punjab_national_bank
 
 csv_output = ""
 
@@ -48,6 +49,8 @@ def findPatternForBank():
         mehsana_bank.initialize(pdf_file, csv_output)
     elif bank_num == 13:
         paytm_bank.initialize(pdf_file, csv_output)
+    elif bank_num == 14:
+        punjab_national_bank.initialize(pdf_file, csv_output)
     else:
         print("Bank not found")
 
@@ -79,8 +82,14 @@ def main():
     # 18 = UJJVALA BANK
     # 19 = UNION BANK
     # 20 = VARCHHA BANK
-
-    findPatternForBank()
+    try:
+        findPatternForBank()
+    except Exception as e:
+        print("Failed to parse!!!Check the following error::")
+        print("-"*10,"START","-"*10)
+        print('\t',e)
+        print("-"*10,"END","-"*10)
+        return
 
     print("Tables extracted and saved to", csv_output)
 
