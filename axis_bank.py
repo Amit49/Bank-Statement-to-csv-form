@@ -7,14 +7,16 @@ import re
 
 Success = False
 
+
 def initialize(pdf_file, csv_output):
     patterns = [
-            Pattern2,
-        ]
+        Pattern2,
+    ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
         if Success:
             break
+
 
 # Done
 # 2_axis_1. 01-04-2021 to 13-10-2021.pdf
@@ -28,14 +30,20 @@ def Pattern2(pdf_file, csv_output):
         return
 
     Bank_Name = "Axis Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
     # print("Pattern2")
     column_name_appened = False
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale=40)
     df_total = pd.DataFrame()
+    shouldBreak = False
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         for index, row in df.iterrows():
+            if "Charge Type" in row[3]:
+                shouldBreak = True
+                break
             match = re.search(r"[a-zA-Z]", row[1])
             if match:
                 year = match.group(0)
@@ -57,6 +65,8 @@ def Pattern2(pdf_file, csv_output):
             ]
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
+        if shouldBreak:
+            break
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
