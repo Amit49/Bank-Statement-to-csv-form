@@ -7,13 +7,14 @@ import re
 
 Success = False
 
+
 def initialize(pdf_file, csv_output):
     patterns = [
-            Pattern1,
-            Pattern14,
-            Pattern20,
-            Pattern21,
-        ]
+        Pattern1,
+        Pattern14,
+        Pattern20,
+        Pattern21,
+    ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
         if Success:
@@ -29,8 +30,9 @@ def Pattern1(pdf_file, csv_output):
         return
 
     Bank_Name = "Baroda Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
-
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
 
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=12)
 
@@ -84,6 +86,7 @@ def Pattern1(pdf_file, csv_output):
     Success = True
     return
 
+
 # Done
 # 22_OpTransactionHistoryUX504-01-2023 (1).pdf
 # pattern: "NARRATION DEPOSIT(CR) DATE CHQ.NO. WITHDRAWAL(DR) BALANCE(INR)"
@@ -93,7 +96,9 @@ def Pattern14(pdf_file, csv_output):
         return
 
     Bank_Name = "Baroda Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=12)
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -113,6 +118,7 @@ def Pattern14(pdf_file, csv_output):
     global Success
     Success = True
 
+
 # Done
 # 27_BHUMI BOB 01.03.2023 TO 31.03.2023.pdf
 # pattern: "Serial/\nNoTransaction/\nDateValue/\nDateDescription Cheque/\nNumberDebit Credit Balance"
@@ -123,7 +129,9 @@ def Pattern20(pdf_file, csv_output):
     # print("Pattern20")
 
     Bank_Name = "Baroda Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
     # print(csv_output)
     skip_first = True
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=14)
@@ -152,6 +160,10 @@ def Pattern20(pdf_file, csv_output):
         while j < (len(df)):
             date_match = re.search(date_pattern, df.loc[j, 1])
             if date_match:
+                if len(df.loc[j, 2]) > 10:
+                    split_result = df.loc[j, 2].split(" ", 1)
+                    df.loc[j, 2] = split_result[0]
+                    df.loc[j, 3] = split_result[1] + df.loc[j, 3]
                 if df.loc[j, 0] in isInserted:
                     j += 1
                     continue
@@ -166,6 +178,7 @@ def Pattern20(pdf_file, csv_output):
     Success = True
     return
 
+
 # Done
 # 1690969903.pdf
 # pattern: "Transaction DetailsDateDescriptionAmountType"
@@ -173,12 +186,16 @@ def Pattern20(pdf_file, csv_output):
 def Pattern21(pdf_file, csv_output):
     pattern_text1 = "Transaction DetailsDateDescriptionAmountType"
     pattern_text2 = "Transaction Details\nDate Description Amount Type"
-    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text1) and not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
+    if not extracting_utility.search_keyword_in_pdf(
+        pdf_file, pattern_text1
+    ) and not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
         return
     # print("Pattern21")
 
     Bank_Name = "Baroda Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
 
     date_pattern = r"\d{2}(/|-)\d{2}(/|-)\d{4}"
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
