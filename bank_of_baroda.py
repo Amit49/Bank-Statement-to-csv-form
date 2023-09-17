@@ -107,6 +107,8 @@ def Pattern14(pdf_file, csv_output):
         drop_row = []
         for index, row in df.iterrows():
             date_match = re.search(date_pattern, row[0])
+            if "Statement of transactions in Savings Account" in row[0]:
+                drop_row.append(index)
             if "DATE" not in row[0] and (not date_match or "Page" in row[2]):
                 drop_row.append(index)
         if len(df.columns) == 5:
