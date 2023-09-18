@@ -78,7 +78,10 @@ def Pattern1(pdf_file, csv_output):
                         drop_column.append(column_index)
                     break
         # dropping empty extra column
-        df.drop(drop_column, axis=1, inplace=True)
+        if len(drop_column) > 0:
+            df.drop(drop_column, axis=1, inplace=True)
+            new_column_names = [0, 1, 2, 3, 4, 5, 6, 7]
+            df = df.set_axis(new_column_names, axis=1)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
@@ -215,7 +218,6 @@ def Pattern21(pdf_file, csv_output):
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
-        # print(df)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
