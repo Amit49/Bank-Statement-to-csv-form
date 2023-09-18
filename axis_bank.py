@@ -22,8 +22,6 @@ def initialize(pdf_file, csv_output):
 # 2_axis_1. 01-04-2021 to 13-10-2021.pdf
 # 2b_2. AXIS BANK.pdf
 # pattern: "Tran Date Chq No Particulars Debit Credit Balance Init."
-
-
 def Pattern2(pdf_file, csv_output):
     pattern_text = "Tran Date Chq No Particulars Debit Credit Balance Init"
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
@@ -33,7 +31,6 @@ def Pattern2(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    # print("Pattern2")
     column_name_appened = False
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale=40)
     df_total = pd.DataFrame()
@@ -51,6 +48,13 @@ def Pattern2(pdf_file, csv_output):
                 remainder = row[1][match.start() :]
                 row[1] = updated_string
                 row[2] = remainder + row[2]
+            if row[3] == "" and row[4] == "" and row[0] != "":
+                # Find the last space's position
+                last_space_index = row[2].rfind(' ')
+
+                # Extract text from the last space to the end
+                row[3] = row[2][last_space_index + 1:]
+                row[2] = row[2][:last_space_index]
         if column_name_appened is False:
             column_name_appened = True
             df = df.drop(0)
