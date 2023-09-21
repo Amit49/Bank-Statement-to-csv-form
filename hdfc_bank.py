@@ -39,31 +39,33 @@ def Pattern8(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        j = 0
-        merged_row = []
-        if i == 0:
-            merged_row = []
-        while j < (len(df)):
-            date_match = re.search(date_pattern, df.loc[j, 0])
-            if date_match:
-                if len(df.loc[j, 0]) > 8:
-                    # print(df.loc[j])
-                    df.loc[j, 1] = df.loc[j, 0][8:] + df.loc[j, 1]
-                    df.loc[j, 0] = df.loc[j, 0][0:8]
-                    # print(df.loc[j])
-                    # print("*"*20)
-                merged_row.append(df.loc[j])
-                j += 1
-                continue
-            elif df.loc[j, 0] == "" and df.loc[j, 2] == "" and df.loc[j, 1] != "":
-                merged_row.append(df.loc[j])
-                j += 1
-                continue
-            j += 1
-
-        df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    # df_total.to_csv("csv_output2.csv" ,mode='a',index=False,header=False)
+    df = df_total
+    j = 0
+    merged_row = []
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            if df_total.loc[j, 6] == "":
+                j += 1
+                continue
+            if len(df.loc[j, 0]) > 8:
+                df.loc[j, 1] = df.loc[j, 0][8:] + df.loc[j, 1]
+                df.loc[j, 0] = df.loc[j, 0][0:8]
+            merged_row.append(df.loc[j])
+            j += 1
+            continue
+        elif df.loc[j, 0] == "" and df.loc[j, 2] == "" and df.loc[j, 1] != "":
+            merged_row.append(df.loc[j])
+            j += 1
+            continue
+        j += 1
+
+    df_total = pd.DataFrame(merged_row).reset_index(drop=True)
+    df_total = df_total.drop_duplicates(subset=[0, 1, 2, 3, 4, 5, 6], keep="last").reset_index(
+        drop=True
+    )
+    df_total.to_csv("csv_output.csv", mode="a", index=False, header=False)
     j = 0
     merged_row = [
         [
