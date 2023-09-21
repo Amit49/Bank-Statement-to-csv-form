@@ -7,6 +7,7 @@ import re
 
 Success = False
 
+
 def initialize(pdf_file, csv_output):
     patterns = [
         Pattern8,
@@ -17,6 +18,7 @@ def initialize(pdf_file, csv_output):
         if Success:
             break
 
+
 # Done
 # HORIZON HIGH ~ HDFC ok.pdf
 # pattern: "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
@@ -25,7 +27,9 @@ def Pattern8(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
     Bank_Name = "HDFC Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
 
     cols = ["65,285,361,403,481,562,630"]
     cols *= 128
@@ -91,11 +95,14 @@ def Pattern8(pdf_file, csv_output):
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(extracting_utility.remove_trailing_newline)
-    df = df.drop_duplicates(subset=[0, 2, 3, 4, 5, 6]).reset_index(drop=True)
+    df = df.drop_duplicates(subset=[0, 2, 3, 4, 5, 6], keep="last").reset_index(
+        drop=True
+    )
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return
+
 
 def Default(pdf_file, csv_output):
     Bank_Name = "HDFC Bank"
