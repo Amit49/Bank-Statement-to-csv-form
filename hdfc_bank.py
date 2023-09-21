@@ -65,7 +65,6 @@ def Pattern8(pdf_file, csv_output):
     df_total = df_total.drop_duplicates(subset=[0, 1, 2, 3, 4, 5, 6], keep="last").reset_index(
         drop=True
     )
-    df_total.to_csv("csv_output.csv", mode="a", index=False, header=False)
     j = 0
     merged_row = [
         [
