@@ -1,5 +1,5 @@
 # 1 = AKHAND ANAND BANK
-    ##Pattern6
+    ## Pattern6
         Header: "Balance Credit Debit Chq No. Particulars Date"
 
 # 2 = AXIS BANK
