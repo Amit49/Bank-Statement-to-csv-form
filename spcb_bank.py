@@ -33,39 +33,31 @@ def Pattern16(pdf_file, csv_output):
     )
     # print(csv_output)
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=12)
-    df_total = pd.DataFrame()
+    df = pd.DataFrame()
 
     for i in tqdm(range(tables.n)):
-        df = tables[i].df
-        date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
-        j = 0
-        merged_row = []
-        if i == 0:
-            merged_row = [["Date", "Particulars", "Withdrawal", "Deposit", "Balance"]]
-
-        while j < (len(df)):
-            date_match = re.search(date_pattern, df.loc[j, 0])
-            # print(date_match)
-            # print(df.loc[j, 0])
-            # print("*"*6)
-            if date_match:
-                # print(f"Row:::\n{df.loc[j]}")
-                if (
-                    j + 1 < (len(df))
-                    and df.loc[j + 1, 0] == ""
-                    and df.loc[j + 1, 1] != ""
-                ):
-                    new_row = df.loc[j] + df.loc[j + 1]
-                    # print(f"New Row:::\n{new_row}")
-                    merged_row.append(new_row)
-                    j += 2
-                    continue
-                else:
-                    merged_row.append(df.loc[j])
-            j += 1
-        df = pd.DataFrame(merged_row)
-        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    df = df_total.drop_duplicates(subset=[0, 2, 3, 4], keep="last").reset_index(
+        df = pd.concat([df, tables[i].df], axis=0).reset_index(drop=True)
+    date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
+    j = 0
+    merged_row = [["Date", "Particulars", "Withdrawal", "Deposit", "Balance"]]
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            if (
+                j + 1 < (len(df))
+                and df.loc[j + 1, 0] == ""
+                and df.loc[j + 1, 1] != ""
+            ):
+                new_row = df.loc[j] + df.loc[j + 1]
+                # print(f"New Row:::\n{new_row}")
+                merged_row.append(new_row)
+                j += 2
+                continue
+            else:
+                merged_row.append(df.loc[j])
+        j += 1
+    df = pd.DataFrame(merged_row)
+    df = df.drop_duplicates(subset=[0, 2, 3, 4], keep="last").reset_index(
         drop=True
     )
     df.to_csv(csv_output, mode="a", index=False, header=False)
