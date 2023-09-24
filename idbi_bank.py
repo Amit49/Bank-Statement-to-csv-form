@@ -33,7 +33,7 @@ def Pattern5(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = ["37,83,345,432,496,559"]
+    cols = ["37,83,280,345,432,496,559"]
     cols *= 128
 
     tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
@@ -42,6 +42,7 @@ def Pattern5(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
         if len(df.columns) > 2 and len(df.columns) < 6:
             df.insert(2, "Chq. no", "")
 
@@ -90,8 +91,30 @@ def Pattern5(pdf_file, csv_output):
             df.loc[j, 3] = df.loc[j, 2]
             df.loc[j, 2] = ""
         j = j + 1
+    # Convert specific columns to strings
+    columns_to_convert = [0, 1, 2, 3, 4, 5]
+    df[columns_to_convert] = df[columns_to_convert].astype(str)
+    df[columns_to_convert] = df[columns_to_convert].applymap(
+        extracting_utility.remove_trailing_newline
+    )
     df = df.drop_duplicates().reset_index(drop=True)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    # df.to_csv(csv_output, mode="a", index=False, header=False)
+    # Find duplicate rows
+    duplicate_rows = df[df.duplicated(subset=[0, 2, 3, 4, 5], keep=False)]
+    need_to_remove = []
+    i = 0
+    while i < len(duplicate_rows.index):
+        if (duplicate_rows.index[i + 1] - duplicate_rows.index[i]) < 2:
+            if len(df.iloc[duplicate_rows.index[i]][1]) > len(
+                df.iloc[duplicate_rows.index[i + 1]][1]
+            ):
+                need_to_remove.append(duplicate_rows.index[i + 1])
+            else:
+                need_to_remove.append(duplicate_rows.index[i])
+        i += 2
+    print(need_to_remove)
+    df.drop(df.index[need_to_remove], inplace=True)
+    df.to_csv("duplicate_rows.csv", index=False, header=False)
     global Success
     Success = True
     return

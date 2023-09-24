@@ -1,4 +1,6 @@
 import PyPDF2
+import camelot
+import matplotlib.pyplot as plt
 
 Page_Num = ""
 
@@ -55,3 +57,7 @@ def remove_trailing_newline(cell_value):
     if cell_value is not None:
         return cell_value.rstrip("\n")
     return cell_value
+
+def show_plot_graph(table):
+    camelot.plot(table, kind='grid')
+    plt.show(block=True)
