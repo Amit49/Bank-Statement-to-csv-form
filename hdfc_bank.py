@@ -96,9 +96,9 @@ def Pattern8(pdf_file, csv_output):
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(extracting_utility.remove_trailing_newline)
-    df = df.drop_duplicates(subset=[0, 2, 3, 4, 5, 6], keep="last").reset_index(
-        drop=True
-    )
+    # df = df.drop_duplicates(subset=[0, 2, 3, 4, 5, 6], keep="last").reset_index(
+    #     drop=True
+    # )
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
