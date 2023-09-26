@@ -88,11 +88,11 @@ def Pattern22(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = ["85,156,230,288,361,418,483"]
+    cols = ["85,156,230,285,361,418,483"]
     cols *= 128
     date_pattern = r"\d{2}-[A-Za-z]{3}-\n\d{4}"
     tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", row_tol=15, columns=cols
+        pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols
     )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -120,23 +120,20 @@ def Pattern22(pdf_file, csv_output):
     while j < (len(df_total)):
         date_match = re.search(date_pattern, df_total.loc[j, 1])
         if date_match:
-            if "EP\n" in df_total.loc[j, 4]:
-                df_total.loc[j, 4] = df_total.loc[j, 4].replace("EP\n", "")
             k = j + 1
             new_row = df_total.loc[j]
-            if k < (len(df_total)):
+            while k < (len(df_total)):
                 next_date_match = re.search(date_pattern, df_total.loc[k, 1])
-            while k < (len(df_total)) and not next_date_match:
+                if next_date_match or df_total.loc[k, 0] != "":
+                    break
                 new_row += "\n" + df_total.loc[k]
                 j += 1
                 k += 1
-                if k < (len(df_total)):
-                    next_date_match = re.search(date_pattern, df_total.loc[k, 1])
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(extracting_utility.remove_trailing_newline)
-    df = df_total.drop_duplicates().reset_index(drop=True)
+    df = df.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
 
     global Success
