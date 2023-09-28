@@ -7,14 +7,16 @@ import re
 
 Success = False
 
+
 def initialize(pdf_file, csv_output):
     patterns = [
-            Pattern6,
-        ]
+        Pattern6,
+    ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
         if Success:
             break
+
 
 # Done
 # 14_Akhand_Anand_1.4.2020 to 31.12.2020.pdf
@@ -22,13 +24,15 @@ def initialize(pdf_file, csv_output):
 def Pattern6(pdf_file, csv_output):
     pattern_text = "Balance Credit Debit Chq No. Particulars Date"
     pattern_text2 = "Akhand Anand"
-    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text) or not extracting_utility.search_keyword_in_pdf(
-        pdf_file, pattern_text2
-    ):
+    if not extracting_utility.search_keyword_in_pdf(
+        pdf_file, pattern_text
+    ) or not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
         return
 
     Bank_Name = "Akhand Anand Bank"
-    extracting_utility.print_info(inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num)
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
     # print(csv_output)
     # print("Pattern6")
     cols = ["65,250,324,409,494,585,655"]
@@ -82,11 +86,13 @@ def Pattern6(pdf_file, csv_output):
 
         df = df.apply(lambda x: x.str.replace(substring_to_remove, ""))
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df = df_total.applymap(extracting_utility.remove_trailing_newline)
-    if len(df.columns) > 7:
-        df.drop(7, axis=1, inplace=True)
+    df = df.iloc[:, :7]
+    # if len(df.columns) > 7:
+    #     df.drop(7, axis=1, inplace=True)
+    # print(df)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True

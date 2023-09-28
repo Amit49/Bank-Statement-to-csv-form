@@ -98,6 +98,7 @@ def Pattern10(pdf_file, csv_output):
     df = pd.DataFrame(merged_row)
     if  extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
+    df = df.iloc[:, :6]
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
