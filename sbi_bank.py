@@ -64,7 +64,8 @@ def Pattern4(pdf_file, csv_output):
                 df.index = df.index + 1  # shifting index
                 df.sort_index(inplace=True)
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-        df = df_total.drop_duplicates().reset_index(drop=True)
+        if  extracting_utility.get_duplicate_remove():
+            df = df_total.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         Success = True
     # 10_1_1. SBI.pdf
@@ -108,7 +109,8 @@ def Pattern4(pdf_file, csv_output):
                     row[1] = updated_string
                     row[2] = remainder
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-        df = df_total.drop_duplicates().reset_index(drop=True)
+        if  extracting_utility.get_duplicate_remove():
+            df = df_total.drop_duplicates().reset_index(drop=True)
         df.to_csv(csv_output, mode="a", index=False, header=False)
         Success = True
     return

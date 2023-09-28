@@ -79,7 +79,8 @@ def Pattern15(pdf_file, csv_output):
         df = df.apply(lambda x: x.str.replace("₹", ""))
         # print(df)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    df = df_total.drop_duplicates().reset_index(drop=True)
+    if  extracting_utility.get_duplicate_remove():
+        df = df_total.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True

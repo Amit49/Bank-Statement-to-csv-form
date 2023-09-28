@@ -3,7 +3,7 @@ import camelot
 import matplotlib.pyplot as plt
 
 Page_Num = ""
-
+remove_duplicate = False
 def text_in_pdf(pdf_path):
     text = ""
     with open(pdf_path, "rb") as file:
@@ -61,3 +61,10 @@ def remove_trailing_newline(cell_value):
 def show_plot_graph(table):
     camelot.plot(table, kind='grid')
     plt.show(block=True)
+
+def set_duplicate_remove(should_remove):
+    global remove_duplicate
+    remove_duplicate = should_remove
+
+def get_duplicate_remove():
+    return remove_duplicate
