@@ -67,8 +67,8 @@ def Pattern19(pdf_file, csv_output):
                     break
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     if  extracting_utility.get_duplicate_remove():
-        df = df_total.drop_duplicates().reset_index(drop=True)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+        df_total = df_total.drop_duplicates().reset_index(drop=True)
+    df_total.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return

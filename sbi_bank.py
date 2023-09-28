@@ -65,8 +65,8 @@ def Pattern4(pdf_file, csv_output):
                 df.sort_index(inplace=True)
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
         if  extracting_utility.get_duplicate_remove():
-            df = df_total.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+            df_total = df_total.drop_duplicates().reset_index(drop=True)
+        df_total.to_csv(csv_output, mode="a", index=False, header=False)
         Success = True
     # 10_1_1. SBI.pdf
     if extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
@@ -110,7 +110,7 @@ def Pattern4(pdf_file, csv_output):
                     row[2] = remainder
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
         if  extracting_utility.get_duplicate_remove():
-            df = df_total.drop_duplicates().reset_index(drop=True)
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+            df_total = df_total.drop_duplicates().reset_index(drop=True)
+        df_total.to_csv(csv_output, mode="a", index=False, header=False)
         Success = True
     return

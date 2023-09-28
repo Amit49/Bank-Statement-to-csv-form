@@ -83,8 +83,8 @@ def Pattern6(pdf_file, csv_output):
         df = df.apply(lambda x: x.str.replace(substring_to_remove, ""))
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     if  extracting_utility.get_duplicate_remove():
-        df = df_total.drop_duplicates().reset_index(drop=True)
-    df = df.applymap(extracting_utility.remove_trailing_newline)
+        df_total = df_total.drop_duplicates().reset_index(drop=True)
+    df = df_total.applymap(extracting_utility.remove_trailing_newline)
     if len(df.columns) > 7:
         df.drop(7, axis=1, inplace=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
