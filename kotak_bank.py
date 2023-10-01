@@ -43,39 +43,17 @@ def Pattern10(pdf_file, csv_output):
     # print(csv_output)
     date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
     date_pattern_2 = r"\d{2}-[A-Za-z]{3}-\d{2}"
-    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="1",col_tol=10)
-    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
-    tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all")
-    # Delimiter
-    data_file_delimiter = ","
-
-    # The max column count a line in the file could have
-    largest_column_count = 0
-
-    # Loop the data lines
-    with open("temp.csv", "r") as temp_f:
-        # Read the lines
-        lines = temp_f.readlines()
-
-        for l in lines:
-            # Count the column count for the current line
-            column_count = len(l.split(data_file_delimiter)) + 1
-
-            # Set the new most column count
-            largest_column_count = (
-                column_count
-                if largest_column_count < column_count
-                else largest_column_count
-            )
-
-    # Generate column names (will be 0, 1, 2, ..., largest_column_count - 1)
-    column_names = [i for i in range(0, largest_column_count)]
-    df = pd.read_csv("temp.csv", names=column_names)
-    # print(df)
-    os.remove("temp.csv")
-    drop_row = []
+    ##### START
+    cols = ["85,268,355,443,527,601"]
+    cols *= 128
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all",columns=cols,split_text=True)
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
     j = 0
-    merged_row = []
     merged_row = [
         [
             "Date",
@@ -87,15 +65,77 @@ def Pattern10(pdf_file, csv_output):
         ]
     ]
     while j < (len(df)):
-        if type(df.loc[j, 0]) != str:
-            j += 1
-            continue
         date_match = re.search(date_pattern, df.loc[j, 0])
         date_match_2 = re.search(date_pattern_2, df.loc[j, 0])
         if date_match or date_match_2:
-            merged_row.append(df.loc[j])
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                next_date_match_2 = re.search(date_pattern_2, df.loc[k, 0])
+                if next_date_match or df.loc[k, 0] != "" or df.loc[k, 4] != "":
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df =df.applymap(extracting_utility.remove_trailing_newline)
+    # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
+    ##### END
+    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="1",col_tol=10)
+    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
+    # tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all")
+    # Delimiter
+    # data_file_delimiter = ","
+
+    # The max column count a line in the file could have
+    # largest_column_count = 0
+
+    # Loop the data lines
+    # with open("temp.csv", "r") as temp_f:
+    #     # Read the lines
+    #     lines = temp_f.readlines()
+
+    #     for l in lines:
+    #         # Count the column count for the current line
+    #         column_count = len(l.split(data_file_delimiter)) + 1
+
+    #         # Set the new most column count
+    #         largest_column_count = (
+    #             column_count
+    #             if largest_column_count < column_count
+    #             else largest_column_count
+    #         )
+
+    # # Generate column names (will be 0, 1, 2, ..., largest_column_count - 1)
+    # column_names = [i for i in range(0, largest_column_count)]
+    # df = pd.read_csv("temp.csv", names=column_names)
+    # # print(df)
+    # os.remove("temp.csv")
+    # drop_row = []
+    # j = 0
+    # merged_row = [
+    #     [
+    #         "Date",
+    #         "Narration",
+    #         "Chq/Ref No.",
+    #         "Withdrawal (Dr)",
+    #         "Deposit (Cr)",
+    #         "Balance",
+    #     ]
+    # ]
+    # while j < (len(df)):
+    #     if type(df.loc[j, 0]) != str:
+    #         j += 1
+    #         continue
+    #     date_match = re.search(date_pattern, df.loc[j, 0])
+    #     date_match_2 = re.search(date_pattern_2, df.loc[j, 0])
+    #     if date_match or date_match_2:
+    #         merged_row.append(df.loc[j])
+    #     j += 1
+    # df = pd.DataFrame(merged_row)
     if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
     df = df.iloc[:, :6]
