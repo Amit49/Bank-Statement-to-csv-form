@@ -11,6 +11,7 @@ Success = False
 def initialize(pdf_file, csv_output):
     patterns = [
         Pattern5,
+        Pattern23,
         Default,
     ]
     for pattern in patterns:
@@ -114,7 +115,70 @@ def Pattern5(pdf_file, csv_output):
         i += 2
     print(need_to_remove)
     df.drop(df.index[need_to_remove], inplace=True)
-    #df.to_csv("duplicate_rows.csv", index=False, header=False)
+    # df.to_csv("duplicate_rows.csv", index=False, header=False)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+
+# Done
+# HB.4.11.11.2021.TO.31.3.2022.pdf
+# pattern: "Txn Date Value DateCheque\nNoDescription CR/DRCC\nYSrl Balance (INR) Amount (INR)"
+def Pattern23(pdf_file, csv_output):
+    pattern_text = "Txn Date Value DateCheque\nNoDescription CR/DRCC\nYSrl Balance (INR) Amount (INR)"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "IDBI Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    date_pattern = r"\d{2}/\d{2}/\d{4}"
+    cols = ["62,152,201,405,445,476,500,564"]
+    cols *= 128
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, split_text=True
+    )
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    j = 0
+    merged_row = [
+        [
+            "Srl",
+            "Txn Date",
+            "Value Date",
+            "Description",
+            "Cheque No.",
+            "CR/DR",
+            "CCY",
+            "Amount(INR)",
+            "Balance(INR)",
+        ]
+    ]
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 1])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 1])
+                if next_date_match or df.loc[k, 0] != "":
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    # df =df.applymap(extracting_utility.remove_trailing_newline)
+    if extracting_utility.get_duplicate_remove():
+        df = df.drop_duplicates().reset_index(drop=True)
+    df = df.iloc[:, :9]
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
