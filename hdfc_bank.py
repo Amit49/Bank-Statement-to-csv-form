@@ -34,19 +34,24 @@ def Pattern8(pdf_file, csv_output):
     cols = ["65,285,361,403,481,562,630"]
     cols *= 128
     should_start_ignore = False
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, edge_tol=500
+    )
+    # tables.export('foo.csv', f='csv')
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     j = 0
+
     merged_row = []
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
         if date_match:
-            if df_total.loc[j, 6] == "":
+            if df.loc[j, 6] == "":
                 j += 1
                 continue
             if len(df.loc[j, 0]) > 8:
@@ -62,9 +67,10 @@ def Pattern8(pdf_file, csv_output):
         j += 1
 
     df_total = pd.DataFrame(merged_row).reset_index(drop=True)
-    df_total = df_total.drop_duplicates(subset=[0, 1, 2, 3, 4, 5, 6], keep="last").reset_index(
-        drop=True
-    )
+
+    # df_total = df_total.drop_duplicates(subset=[0, 1, 2, 3, 4, 5, 6], keep="last").reset_index(
+    #     drop=True
+    # )
     j = 0
     merged_row = [
         [
@@ -96,7 +102,7 @@ def Pattern8(pdf_file, csv_output):
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(extracting_utility.remove_trailing_newline)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates(subset=[0, 2, 3, 4, 5, 6], keep="last").reset_index(
             drop=True
         )
