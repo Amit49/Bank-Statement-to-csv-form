@@ -31,8 +31,9 @@ def Pattern17(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    # print(csv_output)
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
+    cols = ["111,204,391,485,576"]
+    cols *= 128
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -66,7 +67,7 @@ def Pattern17(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
