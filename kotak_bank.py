@@ -96,7 +96,7 @@ def Pattern10(pdf_file, csv_output):
             merged_row.append(df.loc[j])
         j += 1
     df = pd.DataFrame(merged_row)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
     df = df.iloc[:, :6]
     df.to_csv(csv_output, mode="a", index=False, header=False)
@@ -151,7 +151,7 @@ def Pattern11(pdf_file, csv_output):
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
@@ -173,7 +173,7 @@ def Pattern12(pdf_file, csv_output):
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
     # print(csv_output)
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", edge_tol=500)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
@@ -181,60 +181,62 @@ def Pattern12(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
-        j = 0
-        merged_row = []
-        if i == 0:
-            merged_row = [
-                [
-                    "Date",
-                    "Narration",
-                    "Chq/Ref No",
-                    "Withdrawal (Dr)/Deposit (Cr)",
-                    "Balance",
-                ]
-            ]
-
-        while j < (len(df)) - 1:
-            date_match = re.search(date_pattern, df.loc[j, 0])
-            if date_match:
-                # print(f"Row:::\n{df.loc[j+1]}")
-                if (
-                    df.loc[j, 0] != ""
-                    and df.loc[j, 1] != ""
-                    and df.loc[j, 2] == ""
-                    and df.loc[j + 1, 2] != ""
-                ):
-                    # original_string = "This is a sample string with spaces"
-                    last_space_index = df.loc[j, 1].rfind(
-                        " "
-                    )  # Find the index of the last space
-
-                    if last_space_index != -1:
-                        str1 = df.loc[j, 1][
-                            :last_space_index
-                        ]  # Extract the substring after the last space
-                        str2 = df.loc[j, 1][
-                            last_space_index + 1 :
-                        ]  # Extract the substring after the last space
-                        df.loc[j, 1] = str1
-                        df.loc[j, 2] = str2
-                if df.loc[j + 1, 0] == "" and (
-                    df.loc[j + 1, 1] != "" or df.loc[j + 1, 2] != ""
-                ):
-                    new_row = df.loc[j] + df.loc[j + 1]
-                    # print(f"New Row:::\n{new_row}")
-                    merged_row.append(new_row)
-                    j += 2
-                    continue
-                else:
-                    merged_row.append(df.loc[j])
-            j += 1
-        df = pd.DataFrame(merged_row)
+        # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
+        # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
-        df_total = df_total.drop_duplicates().reset_index(drop=True)
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    df = df_total
+    date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
+    j = 0
+    merged_row = [
+        [
+            "Date",
+            "Narration",
+            "Chq/Ref No",
+            "Withdrawal (Dr)/Deposit (Cr)",
+            "Balance",
+        ]
+    ]
+
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            if (
+                df.loc[j, 0] != ""
+                and df.loc[j, 1] != ""
+                and df.loc[j, 2] == ""
+                and df.loc[j + 1, 2] != ""
+            ):
+                # original_string = "This is a sample string with spaces"
+                last_space_index = df.loc[j, 1].rfind(
+                    " "
+                )  # Find the index of the last space
+
+                if last_space_index != -1:
+                    str1 = df.loc[j, 1][
+                        :last_space_index
+                    ]  # Extract the substring after the last space
+                    str2 = df.loc[j, 1][
+                        last_space_index + 1 :
+                    ]  # Extract the substring after the last space
+                    df.loc[j, 1] = str1
+                    df.loc[j, 2] = str2
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if next_date_match or df.loc[k, 0] != "" or df.loc[k, 4] != "":
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    if extracting_utility.get_duplicate_remove():
+        df = df_total.drop_duplicates().reset_index(drop=True)
+    df = df.applymap(extracting_utility.remove_trailing_newline)
+    df = df.iloc[:, :5]
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return
@@ -351,7 +353,7 @@ def Pattern13(pdf_file, csv_output):
             df.index = df.index + 1  # shifting index
             df.sort_index(inplace=True)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
