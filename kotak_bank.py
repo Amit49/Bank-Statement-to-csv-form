@@ -46,7 +46,9 @@ def Pattern10(pdf_file, csv_output):
     ##### START
     cols = ["85,268,355,443,527,601"]
     cols *= 128
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all",columns=cols,split_text=True)
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, split_text=True
+    )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -81,7 +83,7 @@ def Pattern10(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
-    df =df.applymap(extracting_utility.remove_trailing_newline)
+    df = df.applymap(extracting_utility.remove_trailing_newline)
     # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
     ##### END
     # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="1",col_tol=10)
@@ -212,16 +214,21 @@ def Pattern12(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    # print(csv_output)
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", edge_tol=500)
-    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
-    # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
+    cols = ["0,88,276,357,490,571"]
+    cols *= 128
+    tables = camelot.read_pdf(
+        pdf_file,
+        flavor="stream",
+        pages="all",
+        edge_tol=500,
+        column=cols,
+        split_text=True,
+    )
     column_name_appened = False
     # print(tables.n)
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
