@@ -137,7 +137,12 @@ def Pattern23(pdf_file, csv_output):
     cols = ["62,152,201,405,445,476,500,564"]
     cols *= 128
     tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", columns=cols, split_text=True
+        pdf_file,
+        flavor="stream",
+        pages="all",
+        columns=cols,
+        edge_tol=500,
+        split_text=True,
     )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
