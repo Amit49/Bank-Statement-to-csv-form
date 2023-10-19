@@ -54,12 +54,15 @@ def print_info(Func_Name, Bank_Name, Page_Num):
     
 # Function to remove trailing newlines
 def remove_trailing_newline(cell_value):
-    if cell_value is not None:
+    if cell_value is not None and cell_value is str:
         return cell_value.rstrip("\n")
     return cell_value
 
 def show_plot_graph(table):
-    camelot.plot(table, kind='grid')
+    # camelot.plot(table, kind='grid')
+    # camelot.plot(table, kind='joint')
+    # camelot.plot(table, kind='textedge')
+    camelot.plot(table, kind='contour')
     plt.show(block=True)
 
 def set_duplicate_remove(should_remove):
