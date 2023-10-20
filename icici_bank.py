@@ -92,7 +92,7 @@ def Pattern22(pdf_file, csv_output):
     cols *= 128
     date_pattern = r"\d{2}-[A-Za-z]{3}-\n\d{4}"
     tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols
+        pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols, edge_tol=500
     )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -101,7 +101,7 @@ def Pattern22(pdf_file, csv_output):
         # plt.show(block=True)
         df = df.applymap(lambda x: x.rstrip("\/"))
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-
+    # df_total.to_csv("csv_output.csv", mode="a", index=False, header=False)
     j = 0
 
     merged_row = [
@@ -133,7 +133,7 @@ def Pattern22(pdf_file, csv_output):
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(extracting_utility.remove_trailing_newline)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
     df.to_csv(csv_output, mode="a", index=False, header=False)
 
