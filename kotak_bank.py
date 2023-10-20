@@ -222,7 +222,6 @@ def Pattern12(pdf_file, csv_output):
         pages="all",
         edge_tol=500,
         column=cols,
-        split_text=True,
     )
     column_name_appened = False
     # print(tables.n)
