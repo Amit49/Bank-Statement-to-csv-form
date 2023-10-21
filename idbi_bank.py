@@ -112,7 +112,7 @@ def Pattern5(pdf_file, csv_output):
             else:
                 need_to_remove.append(duplicate_rows.index[i])
         i += 2
-    print(need_to_remove)
+    #print(need_to_remove)
     df.drop(df.index[need_to_remove], inplace=True)
     #df.to_csv("duplicate_rows.csv", index=False, header=False)
     df.to_csv(csv_output, mode="a", index=False, header=False)

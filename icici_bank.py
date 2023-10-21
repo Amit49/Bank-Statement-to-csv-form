@@ -92,7 +92,7 @@ def Pattern22(pdf_file, csv_output):
     cols *= 128
     date_pattern = r"\d{2}-[A-Za-z]{3}-\n\d{4}"
     tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols
+        pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols,edge_tol=500
     )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
