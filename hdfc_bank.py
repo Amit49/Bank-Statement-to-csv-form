@@ -40,11 +40,16 @@ def Pattern8(pdf_file, csv_output):
     # tables.export('foo.csv', f='csv')
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
+    already_extracted = []
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        if tables[i].page in already_extracted:
+            continue
+        already_extracted.append(tables[i].page)
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
+    # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
     j = 0
 
     merged_row = []
