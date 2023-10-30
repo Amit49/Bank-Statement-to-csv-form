@@ -231,6 +231,7 @@ def Pattern12(pdf_file, csv_output):
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
+    # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
     date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
     j = 0
     merged_row = [
@@ -270,8 +271,12 @@ def Pattern12(pdf_file, csv_output):
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
-                if next_date_match or df.loc[k, 0] != "" or df.loc[k, 4] != "":
+                if next_date_match:
                     break
+                if df.loc[k, 0] != "" or df.loc[k, 3] != "" or df.loc[k, 4] != "":
+                    j += 1
+                    k += 1
+                    continue
                 new_row += "\n" + df.loc[k]
                 j += 1
                 k += 1
