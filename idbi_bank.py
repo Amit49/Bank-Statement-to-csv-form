@@ -34,14 +34,20 @@ def Pattern5(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = ["37,83,280,345,432,496,559"]
+    cols = ["83,280,345,432,496"]
     cols *= 128
+    TR = ['0,846,634,0']
+    TR *=128
 
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
+    # tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all",columns=cols,table_areas = TR)
+    # tables.export('foo.csv', f='csv')
     should_end = False
     date_pattern = r"(\d{2})(-|/)(\d{2})(-|/)(\d{4})"
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
+        if should_end:
+            break
         df = tables[i].df
         # extracting_utility.show_plot_graph(tables[i])
         if len(df.columns) > 2 and len(df.columns) < 6:
@@ -50,7 +56,14 @@ def Pattern5(pdf_file, csv_output):
         merged_rows = []  # List to store the merged rows
         j = 0
         while j < len(df):
+            if (len(df.loc[j])>4 and "Balance as on" in df.loc[j,4]):
+                print(df.loc[j])
+                should_end = True
+                break
+
             date_match = re.search(date_pattern, df.loc[j, 0])
+            if "Our Toll-free numbers" in df.loc[j, 0]:
+                break
             if date_match and len(df.loc[j]) > 5:
                 merged_rows.append(df.loc[j])
             elif (
@@ -115,6 +128,7 @@ def Pattern5(pdf_file, csv_output):
     # print(need_to_remove)
     # df.drop(df.index[need_to_remove], inplace=True)
     # df.to_csv("duplicate_rows.csv", index=False, header=False)
+    df = df.iloc[:, :6]
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
@@ -134,16 +148,21 @@ def Pattern23(pdf_file, csv_output):
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
     date_pattern = r"\d{2}/\d{2}/\d{4}"
-    cols = ["62,152,201,405,445,476,500,564"]
-    cols *= 128
-    tables = camelot.read_pdf(
-        pdf_file,
-        flavor="stream",
-        pages="all",
-        columns=cols,
-        edge_tol=500,
-        split_text=True,
-    )
+    # cols = ["62,152,201,405,445,476,500,564"]
+    # cols *= 128
+    # TR = ['0,846,634,0']
+    # TR *= 10
+    # tables = camelot.read_pdf(
+    #     pdf_file,
+    #     flavor="stream",
+    #     pages="all",
+    #     # columns=cols,
+    #     table_regions=TR,
+    #     edge_tol=500,
+    #     split_text=True,
+    # )
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale = 100)
+    # tables.export('foo.csv', f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
