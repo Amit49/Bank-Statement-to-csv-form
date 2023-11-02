@@ -57,7 +57,6 @@ def Pattern5(pdf_file, csv_output):
         j = 0
         while j < len(df):
             if (len(df.loc[j])>4 and "Balance as on" in df.loc[j,4]):
-                print(df.loc[j])
                 should_end = True
                 break
 
