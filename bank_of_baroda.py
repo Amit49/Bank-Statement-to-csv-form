@@ -83,7 +83,7 @@ def Pattern1(pdf_file, csv_output):
             new_column_names = [0, 1, 2, 3, 4, 5, 6, 7]
             df = df.set_axis(new_column_names, axis=1)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total = df_total.iloc[:, :8]
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
@@ -104,15 +104,30 @@ def Pattern14(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=12)
+    cols = ["76,360,457,571,695"]
+    cols *= 128
+    TR = ["0,1180,803,0"]
+    TR *= 128
+
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols, table_areas=TR
+    )
+    # tables.export('foo.csv', f='csv')
+
     df_total = pd.DataFrame()
+
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
+        # extracting_utility.show_plot_graph(tables[i])
         date_pattern = r"\d{2}/\d{2}/\d{4}"
         drop_row = []
         for index, row in df.iterrows():
             date_match = re.search(date_pattern, row[0])
-            if "Statement of transactions in Savings Account" in row[0]:
+            if (
+                "Statement of transactions in Savings Account" in row[0]
+                or len(row[0]) > 12
+            ):
                 drop_row.append(index)
             if "DATE" not in row[0] and (not date_match or "Page" in row[2]):
                 drop_row.append(index)
@@ -120,7 +135,7 @@ def Pattern14(pdf_file, csv_output):
             df.insert(2, "chq info", "")
         df = df.drop(drop_row).reset_index(drop=True)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
@@ -180,7 +195,7 @@ def Pattern20(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total = df_total.iloc[:, :8]
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
@@ -224,7 +239,7 @@ def Pattern21(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if  extracting_utility.get_duplicate_remove():
+    if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total = df_total.iloc[:, :4]
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
