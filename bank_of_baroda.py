@@ -234,7 +234,7 @@ def Pattern21(pdf_file, csv_output):
 
         while j < (len(df)):
             date_match = re.search(date_pattern, df.loc[j, 0])
-            if date_match:
+            if date_match and len(df.loc[j, 0]) < 12:
                 merged_row.append(df.loc[j])
             j += 1
         df = pd.DataFrame(merged_row)
