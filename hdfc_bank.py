@@ -34,7 +34,9 @@ def Pattern8(pdf_file, csv_output):
     cols = ["65,285,361,403,481,562,630"]
     cols *= 128
     should_start_ignore = False
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, edge_tol=500
+    )
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
     already_extracted = []
@@ -68,9 +70,9 @@ def Pattern8(pdf_file, csv_output):
         j += 1
 
     df_total = pd.DataFrame(merged_row).reset_index(drop=True)
-    df_total = df_total.drop_duplicates(subset=[0, 1, 2, 3, 4, 5, 6], keep="last").reset_index(
-        drop=True
-    )
+    # df_total = df_total.drop_duplicates(subset=[0, 1, 2, 3, 4, 5, 6], keep="last").reset_index(
+    #     drop=True
+    # )
     j = 0
     merged_row = [
         [
