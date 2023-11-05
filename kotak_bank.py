@@ -31,8 +31,13 @@ def Pattern10(pdf_file, csv_output):
     pattern_text = (
         r"Date.*Narration.*Chq.*Ref.*No.*Withdrawal.*(Dr).*Deposit.*(Cr).*Balance"
     )
+    pattern_text1 = "Chq/Ref No. Withdrawal (Dr) Date Narration Deposit (Cr) Balance"
     # pattern_text_1 = "Date Narration Chq/Ref. No Withdrawal (Dr) Deposit (Cr) Balance"
-    if not re.search(pattern_text, extracting_utility.text_in_pdf(pdf_file)):
+    if (
+        not re.search(pattern_text, extracting_utility.text_in_pdf(pdf_file))
+        and
+        not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text1)
+    ):
         return
     # print("Pattern10")
 
@@ -43,18 +48,53 @@ def Pattern10(pdf_file, csv_output):
     # print(csv_output)
     date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
     date_pattern_2 = r"\d{2}-[A-Za-z]{3}-\d{2}"
-    ##### START
-    cols = ["85,268,355,443,527,601"]
+
+    cols = ["89,275,350,430,527"]
     cols *= 128
+    TA = ['0,785,601,0']
+    TA *= 128
     tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", columns=cols, split_text=True
+        pdf_file, flavor="stream", pages="all",
+        columns=cols,
+        table_ares=TA,
+        edge_tol=500,
+        split_text=True
     )
+    # cols = ["89,275,350,430,527"]
+    # cols *= 128
+    # TA = [0,625,0,410]
+    # # TA *= 128
+    # tables = camelot.read_pdf(
+    #     pdf_file,
+    #     flavor="lattice",
+    #     pages="all",
+    #     # columns=cols,
+    #     # table_ares=TA
+    # )
+    # tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all")
+    
+        
+    # print(df_total1)
+    # tables.export('foo.csv', f='csv')
+    
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
+    if(len(df) == 0):
+        df1 = tabula.read_pdf(pdf_file, pages="all")
+        df_total1 = pd.DataFrame()
+        for i in df1:
+            df_total1 = pd.concat([df_total1, i], axis=0).reset_index(drop=True)
+        df = df_total1
+        df.fillna("", inplace=True)
+        len_df = len(df.columns)
+        new_column_names = []
+        for i in range(len_df):
+            new_column_names.append(i)
+        df = df.set_axis(new_column_names, axis=1)
     j = 0
     merged_row = [
         [
@@ -84,60 +124,6 @@ def Pattern10(pdf_file, csv_output):
         j += 1
     df = pd.DataFrame(merged_row)
     df = df.applymap(extracting_utility.remove_trailing_newline)
-    # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
-    ##### END
-    # tables = camelot.read_pdf(pdf_file,flavor="stream", pages="1",col_tol=10)
-    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
-    # tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all")
-    # Delimiter
-    # data_file_delimiter = ","
-
-    # The max column count a line in the file could have
-    # largest_column_count = 0
-
-    # Loop the data lines
-    # with open("temp.csv", "r") as temp_f:
-    #     # Read the lines
-    #     lines = temp_f.readlines()
-
-    #     for l in lines:
-    #         # Count the column count for the current line
-    #         column_count = len(l.split(data_file_delimiter)) + 1
-
-    #         # Set the new most column count
-    #         largest_column_count = (
-    #             column_count
-    #             if largest_column_count < column_count
-    #             else largest_column_count
-    #         )
-
-    # # Generate column names (will be 0, 1, 2, ..., largest_column_count - 1)
-    # column_names = [i for i in range(0, largest_column_count)]
-    # df = pd.read_csv("temp.csv", names=column_names)
-    # # print(df)
-    # os.remove("temp.csv")
-    # drop_row = []
-    # j = 0
-    # merged_row = [
-    #     [
-    #         "Date",
-    #         "Narration",
-    #         "Chq/Ref No.",
-    #         "Withdrawal (Dr)",
-    #         "Deposit (Cr)",
-    #         "Balance",
-    #     ]
-    # ]
-    # while j < (len(df)):
-    #     if type(df.loc[j, 0]) != str:
-    #         j += 1
-    #         continue
-    #     date_match = re.search(date_pattern, df.loc[j, 0])
-    #     date_match_2 = re.search(date_pattern_2, df.loc[j, 0])
-    #     if date_match or date_match_2:
-    #         merged_row.append(df.loc[j])
-    #     j += 1
-    # df = pd.DataFrame(merged_row)
     if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
     df = df.iloc[:, :6]
