@@ -214,23 +214,40 @@ def Pattern12(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = ["0,88,276,357,490,571"]
+    pages = int(extracting_utility.Page_Num-1)
+    cols = ["85,270,350,475"]
     cols *= 128
+    TA = ['0,632,585,0']
+    TA *= 128
     tables = camelot.read_pdf(
         pdf_file,
         flavor="stream",
-        pages="all",
-        edge_tol=500,
+        pages=f"1-{pages}",
+        # edge_tol=500,
+        column=cols,
+        table_areas=TA,
+        # row_tol = 1,
+        # split_text=True,
+    )
+    tables_last_page = camelot.read_pdf(
+        pdf_file,
+        flavor="stream",
+        pages=f"{pages+1}",
         column=cols,
     )
+    # tables.export('foo.csv', f='csv')
     column_name_appened = False
-    # print(tables.n)
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    for i in tqdm(range(tables_last_page.n)):
+        df = tables_last_page[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
+    df.fillna("", inplace=True)
     # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
     date_pattern = r"(\d{2})-(\d{2})-(\d{4})"
     j = 0
@@ -247,33 +264,139 @@ def Pattern12(pdf_file, csv_output):
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
         if date_match:
+            '''
+            The following condition is applied when
+            only 4 columns are found instead of 5 columns
+            and column 2 and column 3 are merged togather.
+            (found in "5.3.2023.to.6.10.2023.PDF")
+            '''
+            if df.loc[j,4]=="":
+                df.loc[j,4] = df.loc[j,3]
+                df.loc[j,3] = df.loc[j,2]
+                df.loc[j,2] = ""
+                '''
+                The following condition is applied when
+                column 1 and column 2 are merged togather
+                and also
+                column 3,4,5 shifted left
+                (found in "BRIJESH.BAVISHI_19-20.pdf")
+                '''
+                if len(df.loc[j,0]) > 12:
+                    if j+2 < len(df):
+                        next_date_match = re.search(date_pattern, df.loc[j+1, 0])
+                        next_next_date_match = re.search(date_pattern, df.loc[j+2, 0])
+                        if not next_date_match and (next_next_date_match or "Statement  Summary" in df.loc[j+2,0]):
+                            df.loc[j] = df.loc[j] + df.loc[j+1]
+                            df.loc[j+1,0] = ""
+                            df.loc[j+1,1] = ""
+                            df.loc[j+1,2] = ""
+                    parts = df.loc[j,0].split("\n",1)
+                    if(len(parts) > 1):
+                        df.loc[j,0] = parts[0]
+                        df.loc[j,1] = parts[1]+" "+df.loc[j,1]
+
+                parts = df.loc[j,1].split("\n")
+                if(len(parts) > 1):
+                    df.loc[j,1] = parts[0]
+                    df.loc[j,2] = parts[1]
+
+                if "UPI-" in df.loc[j,1] and df.loc[j,2] == "":
+                    parts = df.loc[j,1].rsplit("UPI-",1)
+                    df.loc[j,1] = parts[0]
+                    df.loc[j,2] = "UPI-"+parts[1]
+                if "UPI-" in df.loc[j,2] and j+1 < len(df) and df.loc[j+1,2]=="":
+                    parts = df.loc[j+1,1].split("\n")
+                    if(len(parts) > 1):
+                        df.loc[j+1,1] = parts[0]
+                        df.loc[j+1,2] = parts[1]
+                    elif (len(parts) == 1):
+                        df.loc[j+1,2] = df.loc[j+1,1]
+                        df.loc[j+1,1] = ""
+                if "CLG TO" in df.loc[j,1] and df.loc[j,2] == "":
+                    parts = df.loc[j,1].rsplit(' ',1)
+                    df.loc[j,1] = parts[0]
+                    df.loc[j,2] = parts[1]
+                if "FD PREMAT" in df.loc[j,1] and df.loc[j,2] == "":
+                    parts = df.loc[j,1].rsplit(' ',1)
+                    df.loc[j,1] = parts[0]
+                    df.loc[j,2] = parts[1]
+            '''
+            The following condition is applied when
+            column 1 and column 2 are merged togather
+            (found in "BRIJESH.BAVISHI_19-20.pdf")
+            '''
+            if len(df.loc[j,0]) > 12:
+                parts = df.loc[j,0].split("\n",1)
+                if(len(parts) > 1):
+                    df.loc[j,0] = parts[0]
+                    df.loc[j,1] = parts[1]+" "+df.loc[j,1]
+
+            '''
+            The following condition is applied when
+            column 2 and column 3 are merged togather.
+            (found in "5.3.2023.to.6.10.2023.PDF")
+            '''
             if (
                 df.loc[j, 0] != ""
                 and df.loc[j, 1] != ""
                 and df.loc[j, 2] == ""
+                and (j+1) < len(df)
+                and df.loc[j + 1, 0] == ""
                 and df.loc[j + 1, 2] != ""
             ):
-                # original_string = "This is a sample string with spaces"
-                last_space_index = df.loc[j, 1].rfind(
-                    " "
-                )  # Find the index of the last space
-
-                if last_space_index != -1:
-                    str1 = df.loc[j, 1][
-                        :last_space_index
-                    ]  # Extract the substring after the last space
-                    str2 = df.loc[j, 1][
-                        last_space_index + 1 :
-                    ]  # Extract the substring after the last space
-                    df.loc[j, 1] = str1
-                    df.loc[j, 2] = str2
+                if df.loc[j, 1].endswith("UPI-"):
+                    df.loc[j, 1] = df.loc[j, 1][:-4]
+                    df.loc[j, 2] = "UPI-"+df.loc[j, 2]
+                else:
+                    last_space_index = df.loc[j, 1].rfind(" ")
+                    if last_space_index != -1:
+                        str1 = df.loc[j, 1][
+                            :last_space_index
+                        ]  # Extract the substring after the last space
+                        str2 = df.loc[j, 1][
+                            last_space_index + 1 :
+                        ]  # Extract the substring after the last space
+                        df.loc[j, 1] = str1
+                        df.loc[j, 2] = str2
+            '''
+            The following condition is applied when
+            column 4 and column 5 are merged togather
+            in the 5th column.
+            (found in "5.3.2023.to.6.10.2023.PDF")
+            or
+            column 4 and column 5 are shifted to right
+            (found in "BRIJESH.BAVISHI_19-20.pdf")
+            '''
+            if "r)" not in df.loc[j, 3]:
+                if "r)" in df.loc[j, 5]:
+                    df.loc[j, 3] = df.loc[j, 4]
+                    df.loc[j, 4] = df.loc[j, 5]
+                    if j+1 < len(df):
+                        next_date_match = re.search(date_pattern, df.loc[j+1, 0])
+                        if not next_date_match:
+                            if df.loc[j+1, 0]!= "" and df.loc[j+1, 1] == "":
+                                df.loc[j+1, 1] = df.loc[j+1, 0]
+                                df.loc[j+1, 0] = ""
+                else:
+                    parts = df.loc[j, 4].split("r)")
+                    df.loc[j, 3] = parts[0] + "r)"
+                    df.loc[j, 4] = parts[1] + "r)"
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
                 if next_date_match:
                     break
-                if df.loc[k, 0] != "" or df.loc[k, 3] != "" or df.loc[k, 4] != "":
+                if (
+                    df.loc[k, 0] != ""
+                    or df.loc[k, 3] != ""
+                    or df.loc[k, 4] != ""
+                    or df.loc[k,1] == "Cust.Reln.No"
+                    or df.loc[k, 1]=="Deposit (Cr)"
+                    or df.loc[k, 1]=="Nominee Registered"
+                    or df.loc[k, 2]=="Nominee Registered"
+                    or df.loc[k, 2]=="Deposit (Cr)"
+                ):
                     j += 1
                     k += 1
                     continue
