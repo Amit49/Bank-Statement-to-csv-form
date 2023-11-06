@@ -34,20 +34,36 @@ def Pattern8(pdf_file, csv_output):
     cols = ["65,285,361,403,481,562,630"]
     cols *= 128
     should_start_ignore = False
-    tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", columns=cols, edge_tol=500
-    )
+    # tables = camelot.read_pdf(
+    #     pdf_file, flavor="stream", pages="44", columns=cols, edge_tol=500
+    # )
     # tables.export('foo.csv', f='csv')
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
     already_extracted = []
-    for i in tqdm(range(tables.n)):
-        df = tables[i].df
-        if tables[i].page in already_extracted:
-            continue
-        already_extracted.append(tables[i].page)
-        # extracting_utility.show_plot_graph(tables[i])
-        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    page = 1
+    while page <= extracting_utility.Page_Num:
+        tables = camelot.read_pdf(
+            pdf_file, flavor="stream", pages=f"{page}", columns=cols, edge_tol=500
+        )
+        # larger_table = pd.DataFrame()
+        for i in range(tables.n):
+            if(i==0):
+                larger_table = tables[i]
+            else:
+                if tables[i].shape[0]*tables[i].shape[1] > larger_table.shape[0]*larger_table.shape[1]:
+                    larger_table = tables[i]
+        df_total = pd.concat([df_total, larger_table.df], axis=0).reset_index(drop=True)
+        page = page + 1
+
+    # for i in tqdm(range(tables.n)):
+    #     df = tables[i].df
+    #     print(type(tables[i]))
+    #     extracting_utility.show_plot_graph(tables[i])
+    #     if tables[i].page in already_extracted:
+    #         continue
+    #     already_extracted.append(tables[i].page)
+    #     df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
     j = 0
