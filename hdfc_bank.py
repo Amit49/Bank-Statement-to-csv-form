@@ -31,8 +31,10 @@ def Pattern8(pdf_file, csv_output):
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
 
-    cols = ["65,285,361,403,481,562,630"]
+    cols = ["68,270,361,403,481,562,630"]
     cols *= 128
+    TA = ["0,630,635,60"]
+    TA *= 128
     should_start_ignore = False
     # tables = camelot.read_pdf(
     #     pdf_file, flavor="stream", pages="44", columns=cols, edge_tol=500
@@ -41,13 +43,26 @@ def Pattern8(pdf_file, csv_output):
     date_pattern = r"\d{2}/\d{2}/\d{2}"
     df_total = pd.DataFrame()
     already_extracted = []
-    page = 1
-    while page <= extracting_utility.Page_Num:
+    start_page = 1
+    end_page = extracting_utility.Page_Num
+    # start_page = 1
+    # end_page = 6
+    page = start_page
+    while page <= end_page:
         tables = camelot.read_pdf(
-            pdf_file, flavor="stream", pages=f"{page}", columns=cols, edge_tol=500
+            pdf_file,
+            flavor="stream",
+            pages=f"{page}",
+            columns=cols,
+            # split_text=True,
+            # edge_tol=500,
+            table_areas=TA,
         )
+        # tables.export('foo.csv', f='csv')
         # larger_table = pd.DataFrame()
         for i in range(tables.n):
+            # extracting_utility.show_plot_graph(tables[i])
+            # print(tables[i])
             if(i==0):
                 larger_table = tables[i]
             else:
@@ -112,7 +127,10 @@ def Pattern8(pdf_file, csv_output):
             if k < (len(df_total)):
                 next_date_match = re.search(date_pattern, df_total.loc[k, 0])
             while k < (len(df_total)) and not next_date_match:
-                if "This is a computer generated statement" in df_total.loc[k, 5]:
+                if (
+                    "This is a computer generated statement" in df_total.loc[k, 5]
+                    or "STATEMENT SUMMARY" in df_total.loc[k, 1]
+                ):
                     break
                 new_row += "\n" + df_total.loc[k]
                 j += 1
