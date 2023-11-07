@@ -35,14 +35,15 @@ def Pattern7(pdf_file, csv_output):
     )
     cols = ["85,250,330,405,495,570"]
     cols *= 128
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols)
+    TA = ["0,805,580,85"]
+    TA *= 128
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", columns=cols,table_areas=TA)
     last_df_row = pd.DataFrame()
     df_total = pd.DataFrame()
 
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # camelot.plot(tables[i], kind='textedge')
-        # plt.show(block=True)
+        # extracting_utility.show_plot_graph(tables[i])
         merged_rows = []  # List to store the merged rows
         prev_row = None
         date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
