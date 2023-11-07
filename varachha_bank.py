@@ -45,7 +45,7 @@ def Pattern18(pdf_file, csv_output):
         pages="1",
         row_tol=20,
         # edge_tol = 150,
-        split_text=True,
+        # split_text=True,
         columns=cols,
         table_areas=TA,
     )
@@ -100,8 +100,7 @@ def Pattern18(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    print(df_total)
-
+    print(df_total.to_string())
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages=f"2-{extracting_utility.Page_Num}")
     for i in tqdm(range(tables.n)):
         df = tables[i].df
