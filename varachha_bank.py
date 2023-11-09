@@ -37,7 +37,7 @@ def Pattern18(pdf_file, csv_output):
     # print(csv_output)
     cols = ["90,148,300,368,435,500"]
     cols *= 128
-    TA = ["0,550,574,0"]
+    TA = ["0,750,574,0"]
     TA *= 128
     tables_first_page = camelot.read_pdf(
         pdf_file,
