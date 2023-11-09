@@ -38,7 +38,7 @@ def Default(pdf_file, csv_output):
     j = 0
     merged_row = [
                 [
-                    "TRN.  Date",
+                    "TRANS DATE",
                     "Value  Date",
                     "Branch",
                     "REF/CHQ.NO",
