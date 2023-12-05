@@ -3,6 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 import extracting_utility
 import camelot
+import tabula
 import re
 import matplotlib.pyplot as plt
 
@@ -163,6 +164,16 @@ def Default(pdf_file, csv_output):
         df.to_csv(csv_output, mode="a", index=False, header=False)
     return
 
+def extract_and_remove_text(input_string, strpart1, strpart2):
+    start_index = input_string.find(strpart1)
+    end_index = input_string.find(strpart2, start_index + len(strpart1))
+
+    if start_index != -1 and end_index != -1:
+        extracted_text = input_string[start_index + len(strpart1):end_index]
+        input_string = input_string[:start_index] + input_string[end_index + len(strpart2):]
+        return extracted_text, input_string
+    else:
+        return None, input_string
 
 # TODO: Particles is up and down row of Date position
 # make change in utils.py of camelot package
@@ -180,11 +191,11 @@ def PatternICICI3(pdf_file, csv_output):
 
     cols = ["73,153,382,436,525"]
     cols *= 128
-    TR = ["0,800,600,0"]
-    TR *= 128
-
+    TA = ["0,800,600,0"]
+    TA *= 128
     tables = camelot.read_pdf(
-        pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TR, row_tol=10
+        pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TA,
+        # , row_tol=10
     )
     # tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
 
@@ -205,28 +216,25 @@ def PatternICICI3(pdf_file, csv_output):
             "BALANCE",
         ]
     ]
-
-    # j = 0
-    # while j < (len(df)):
-    #     date_match = re.search(date_pattern, df.loc[j, 0])
-    #     if date_match:
-    #         k = j + 1
-    #         new_row = df.loc[j]
-    #         while k < (len(df)):
-    #             next_date_match = re.search(date_pattern, df.loc[k, 0])
-    #             if (
-    #                 next_date_match
-    #                 or df.loc[k, 0] != ""
-    #                 or df.loc[k, 2] != ""
-    #                 or df.loc[k, 3] != ""
-    #             ):
-    #                 break
-    #             new_row += "\n" + df.loc[k]
-    #             j += 1
-    #             k += 1
-    #         merged_row.append(new_row)
-    #     j += 1
-    # df = pd.DataFrame(merged_row)
+    remaining_string = extracting_utility.text_in_pdf(pdf_file)
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match and len(df.loc[j])>5 and df.loc[j, 5]!= "":
+            first_part = df.loc[j,0]
+            last_part = ""
+            if df.loc[j,1] != "":
+                first_part = df.loc[j,1]
+            if df.loc[j,3] != "":
+                last_part = df.loc[j,3]
+            else:
+                last_part = df.loc[j,4]
+                
+            extracted_text, remaining_string = extract_and_remove_text(remaining_string, first_part, last_part)
+            df.loc[j, 2] = extracted_text
+            merged_row.append(df.loc[j])
+        j += 1
+    df = pd.DataFrame(merged_row)
     df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
