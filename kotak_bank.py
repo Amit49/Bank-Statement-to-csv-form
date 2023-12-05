@@ -16,6 +16,8 @@ def initialize(pdf_file, csv_output):
         Pattern11,
         Pattern12,
         Pattern13,
+        PatternKotak5,
+        # PatternKotak6,
     ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
@@ -516,6 +518,119 @@ def Pattern13(pdf_file, csv_output):
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+
+# Done
+# 1.7.2023 to 31.7.2023.pdf
+# pattern: "DATE TRANSACTION DETAILS CHEQUE/REFERENCE# DEBIT  CREDIT  BALANCE"
+def PatternKotak5(pdf_file, csv_output):
+    pattern_text = "DATE TRANSACTION DETAILS CHEQUE/REFERENCE# DEBIT  CREDIT  BALANCE"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "Kotak Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    cols = ["94,266,365,425,510"]
+    cols *= 128
+    TA = ["0,780,620,0"]
+    TA *= 128
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all",
+        columns=cols,
+        table_areas=TA,
+        split_text=True,
+    )
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    
+    date_pattern = r"\d{2} [A-Za-z]{3}, \d{4}"
+    merged_row = [
+        [
+            "DATE",
+            "TRANSACTION DETAILS",
+            "CHEQUE/REFERENCE#",
+            "DEBIT",
+            "CREDIT",
+            "BALANCE",
+        ]
+    ]
+
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match and df.loc[j, 5]!= "":
+            if len(df.loc[j, 0]) > 12:
+                split_text = df.loc[j, 0].rsplit(maxsplit=1)
+                # print(split_text)
+                df.loc[j, 0] = split_text[0]
+                if len(split_text) > 1:
+                    df.loc[j, 1] = split_text[1]+df.loc[j, 1]
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if(not next_date_match and df.loc[k, 0] !=""):
+                    df.loc[k, 1] = df.loc[k, 0]+df.loc[k,1]
+                    df.loc[k, 0] = ""
+                if (
+                    next_date_match
+                    or df.loc[k, 0] != ""
+                    or df.loc[k, 1] == "SUMMARY"
+                    or df.loc[k, 2] != ""
+                    or df.loc[k, 3] != ""
+                    or df.loc[k, 4] != ""
+                    or df.loc[k, 5] != ""
+                ):
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+
+    df.to_csv(csv_output, mode="w", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+# Working
+# No need I think, need to review later
+# Replace with file name
+# pattern: "Chq/Ref No. Withdrawal (Dr) Date Narration Deposit (Cr) Balance"
+def PatternKotak6(pdf_file, csv_output):
+    pattern_text = "Chq/Ref No. Withdrawal (Dr) Date Narration Deposit (Cr) Balance"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "Kotak Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    cols = [""]
+    cols *= 128
+    TA = [""]
+    TA *= 128
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all",
+        # columns=cols, table_areas=TA
+    )
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    df.to_csv(csv_output, mode="a", index=False, header=False)
     global Success
     Success = True
     return
