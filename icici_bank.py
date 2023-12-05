@@ -12,6 +12,10 @@ Success = False
 def initialize(pdf_file, csv_output):
     patterns = [
         Pattern22,
+        PatternICICI3,
+        PatternICICI4,
+        PatternICICI5,
+        PatternICICI6,
         Default,
     ]
     for pattern in patterns:
@@ -157,4 +161,198 @@ def Default(pdf_file, csv_output):
         # Remove trailing backslashes from all cells
         df = df.applymap(lambda x: x.rstrip("\/"))
         df.to_csv(csv_output, mode="a", index=False, header=False)
+    return
+
+
+# TODO: Particles is up and down row of Date position
+# make change in utils.py of camelot package
+# 02. 01.06.2023 TO 31.07.2023.pdf
+# pattern: "DATE MODE** PARTICULARS DEPOSITS WITHDRAWALS BALANCE"
+def PatternICICI3(pdf_file, csv_output):
+    pattern_text = "DATE MODE** PARTICULARS DEPOSITS WITHDRAWALS BALANCE"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "ICICI Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+
+    cols = ["73,153,382,436,525"]
+    cols *= 128
+    TR = ["0,800,600,0"]
+    TR *= 128
+
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TR, row_tol=10
+    )
+    # tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    date_pattern = r"\d{2}-\d{2}-\d{4}"
+    merged_row = [
+        [
+            "DATE",
+            "MODE**",
+            "PARTICULARS",
+            "DEPOSITS",
+            "WITHDRAWALS",
+            "BALANCE",
+        ]
+    ]
+
+    # j = 0
+    # while j < (len(df)):
+    #     date_match = re.search(date_pattern, df.loc[j, 0])
+    #     if date_match:
+    #         k = j + 1
+    #         new_row = df.loc[j]
+    #         while k < (len(df)):
+    #             next_date_match = re.search(date_pattern, df.loc[k, 0])
+    #             if (
+    #                 next_date_match
+    #                 or df.loc[k, 0] != ""
+    #                 or df.loc[k, 2] != ""
+    #                 or df.loc[k, 3] != ""
+    #             ):
+    #                 break
+    #             new_row += "\n" + df.loc[k]
+    #             j += 1
+    #             k += 1
+    #         merged_row.append(new_row)
+    #     j += 1
+    # df = pd.DataFrame(merged_row)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+
+# Done
+# INFINITE_1_ICICI_APR TO JUNE 2023.pdf
+# pattern: "Date Description Amount Type"
+def PatternICICI4(pdf_file, csv_output):
+    pattern_text = "Date Description Amount Type"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "ICICI Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+
+# Done
+# SHILPA_1.4.2022 to 31.3.2023.pdf
+# pattern: "Date Particulars Chq.No. Withdrawals Deposits Autosweep Reverse"
+def PatternICICI5(pdf_file, csv_output):
+    pattern_text = "Date Particulars Chq.No. Withdrawals Deposits Autosweep Reverse"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "ICICI Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    df = extracting_utility.filter_dataframe(df, 0, "Page Total", 2)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+
+# Done
+# AM_-_April_To_Aug_2023_1701073987.pdf
+# pattern: "No. Transaction ID Value Date Txn Posted Date ChequeNo. Description Cr/Dr Transaction"
+def PatternICICI6(pdf_file, csv_output):
+    pattern_text = "No. Transaction ID Value Date Txn Posted Date ChequeNo. Description Cr/Dr Transaction"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "ICICI Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    cols = ["30,107,170,310,400,700,760,830"]
+    cols *= 128
+    TR = ["0,1340,910,0"]
+    TR *= 128
+
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TR, row_tol=12
+    )
+    # tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    date_pattern = r"\d{2}/\d{2}/\d{4}"
+
+    merged_row = [
+        [
+            "No.",
+            "Transaction ID",
+            "Value Date",
+            "Txn Posted Date",
+            "ChequeNo.",
+            "Description",
+            "Cr/Dr",
+            "Transaction Amount(INR)",
+            "Available Balance(INR)",
+        ]
+    ]
+
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 2])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 2])
+                if (
+                    next_date_match
+                    or df.loc[k, 2] != ""
+                    or df.loc[k, 3] != ""
+                    or df.loc[k, 4] != ""
+                ):
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    df.to_csv(csv_output, mode="a", index=False, header=False)
+    global Success
+    Success = True
     return
