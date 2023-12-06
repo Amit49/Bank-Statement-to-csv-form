@@ -163,6 +163,10 @@ def PatternAxis3(pdf_file, csv_output):
     if not index_to_discard_after.empty and not index_to_discard_before.empty:
         df = df.loc[index_to_discard_before[0] : index_to_discard_after[0] - 1]
 
+    df = df.applymap(lambda x: x.replace('  ', '$$'))
+    df = df.applymap(lambda x: x.replace(' ', ''))
+    df = df.applymap(lambda x: x.replace('$$', ' '))
+
     # Adding the header
     df.loc[-1] = [
                 "Tran Date",
