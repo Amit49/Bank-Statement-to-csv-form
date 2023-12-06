@@ -189,6 +189,7 @@ def PatternSBI2(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.iloc[:, :8]
     df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
@@ -260,6 +261,7 @@ def PatternSBI3(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.iloc[:, :6]
     df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
@@ -332,6 +334,7 @@ def PatternSBI4(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.iloc[:, :7]
     df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
@@ -404,6 +407,7 @@ def PatternSBI5(pdf_file, csv_output):
             merged_row.append(new_row)
         j += 1
     df = pd.DataFrame(merged_row)
+    df = df.iloc[:, :6]
     df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
