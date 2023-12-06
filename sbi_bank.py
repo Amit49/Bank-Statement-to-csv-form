@@ -362,12 +362,13 @@ def PatternSBI5(pdf_file, csv_output):
     # )
     tables = camelot.read_pdf(
         pdf_file, flavor="lattice", pages="all",
-        line_scale = 80
+        line_scale = 20,
+        process_background=True,
     )
     df_total = pd.DataFrame()
-    print(tables.n)
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        # print(df.to_markdown())
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
