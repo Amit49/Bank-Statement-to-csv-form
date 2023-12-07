@@ -36,11 +36,13 @@ def Pattern5(pdf_file, csv_output):
     )
     cols = ["83,280,345,432,496"]
     cols *= 128
-    TR = ['0,846,634,0']
-    TR *=128
+    TR = ["0,846,634,0"]
+    TR *= 128
 
     # tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all")
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all",columns=cols,table_areas = TR)
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TR
+    )
     # tables.export('foo.csv', f='csv')
     should_end = False
     date_pattern = r"(\d{2})(-|/)(\d{2})(-|/)(\d{4})"
@@ -56,7 +58,7 @@ def Pattern5(pdf_file, csv_output):
         merged_rows = []  # List to store the merged rows
         j = 0
         while j < len(df):
-            if (len(df.loc[j])>4 and "Balance as on" in df.loc[j,4]):
+            if len(df.loc[j]) > 4 and "Balance as on" in df.loc[j, 4]:
                 should_end = True
                 break
 
@@ -146,7 +148,8 @@ def Pattern23(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    date_pattern = r"\d{2}/\d{2}/\d{4}"
+    # date_pattern = r"\d{2}/\d{2}/\d{4}"
+    date_pattern = r"[\d{2}|\d{4}][/|-]\d{2}[/|-][\d{2}|\d{4}]"
     # cols = ["62,152,201,405,445,476,500,564"]
     # cols *= 128
     # TR = ['0,846,634,0']
@@ -160,8 +163,10 @@ def Pattern23(pdf_file, csv_output):
     #     edge_tol=500,
     #     split_text=True,
     # )
-    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale = 100)
-    # tables.export('foo.csv', f='csv')
+
+    # tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale = 100)
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all",line_scale =20, joint_tol=10)
+    # tables.export("foo.csv", f="csv")
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -201,7 +206,7 @@ def Pattern23(pdf_file, csv_output):
     if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
     df = df.iloc[:, :9]
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
