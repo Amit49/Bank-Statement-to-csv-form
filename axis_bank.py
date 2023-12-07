@@ -129,8 +129,11 @@ def PatternAxis2(pdf_file, csv_output):
 # BANK_STATEMENT_1701249478.pdf
 # pattern: "Tran Date Value  Date   Transaction Details Chq. No. Amount (In Rs.) Dr/Cr Balance (In Rs.) Branch Name"
 def PatternAxis3(pdf_file, csv_output):
-    pattern_text = "Tran Date Value  Date   Transaction Details Chq. No. Amount (In Rs.) Dr/Cr Balance (In Rs.) Branch Name"
-    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+    # pattern_text = "Tran Date Value  Date   Transaction Details Chq. No. Amount (In Rs.) Dr/Cr Balance (In Rs.) Branch Name"
+    pattern_text = r"Tran.*Date.*Value.* Date.*Transaction.*Details.*Chq..*No..*Amount.*(In.*Rs.).*Dr/Cr.*Balance.*(In.*Rs.).*Branch.*Name"
+    # if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+    #     return
+    if not re.search(pattern_text, extracting_utility.text_in_pdf(pdf_file)):
         return
 
     Bank_Name = "Axis Bank"
@@ -158,29 +161,62 @@ def PatternAxis3(pdf_file, csv_output):
     # Removing all rows before "OPENING BALANCE" and after "TRANSACTION TOTAL DR/CR:"
     target_value_start = "OPENING BALANCE"
     target_value_end = "TRANSACTION TOTAL DR/CR:"
-    index_to_discard_before = df[df[2].str.contains(target_value_start, case=False, na=False)].index
-    index_to_discard_after = df[df[0].str.contains(target_value_end, case=False, na=False)].index
+    index_to_discard_before = df[
+        df[2].str.contains(target_value_start, case=False, na=False)
+    ].index
+    index_to_discard_after = df[
+        df[0].str.contains(target_value_end, case=False, na=False)
+    ].index
     if not index_to_discard_after.empty and not index_to_discard_before.empty:
         df = df.loc[index_to_discard_before[0] : index_to_discard_after[0] - 1]
+    df = df.applymap(str)
+    df = df.applymap(lambda x: x.replace("  ", "$$"))
+    df = df.applymap(lambda x: x.replace(" ", ""))
+    df = df.applymap(lambda x: x.replace("$$", " ")).reset_index(drop=True)
 
-    df = df.applymap(lambda x: x.replace('  ', '$$'))
-    df = df.applymap(lambda x: x.replace(' ', ''))
-    df = df.applymap(lambda x: x.replace('$$', ' '))
-
-    # Adding the header
-    df.loc[-1] = [
-                "Tran Date",
-                "Value Date",
-                "Transaction Details",
-                "Chq. No.",
-                "Amount (In Rs.)",
-                "Dr/Cr",
-                "Balance (In Rs.)",
-                "Branch Name",
-            ]
-    df.index = df.index + 1  # shifting index
-    df.sort_index(inplace=True)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    date_pattern = r"\d{2}/\d{2}/\d{4}"
+    j = 0
+    merged_row = [
+        [
+            "Tran Date",
+            "Value Date",
+            "Transaction Details",
+            "Chq. No.",
+            "Amount (In Rs.)",
+            "Dr/Cr",
+            "Balance (In Rs.)",
+            "Branch Name",
+        ]
+    ]
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if next_date_match or df.loc[k, 0] != "":
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    # # Adding the header
+    # df.loc[-1] = [
+    #     "Tran Date",
+    #     "Value Date",
+    #     "Transaction Details",
+    #     "Chq. No.",
+    #     "Amount (In Rs.)",
+    #     "Dr/Cr",
+    #     "Balance (In Rs.)",
+    #     "Branch Name",
+    # ]
+    # df.index = df.index + 1  # shifting index
+    # df.sort_index(inplace=True)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
