@@ -99,11 +99,11 @@ def Pattern22(pdf_file, csv_output):
     tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols, edge_tol=500
     )
+    # tables.export('foo.csv', f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # camelot.plot(tables[i], kind='grid')
-        # plt.show(block=True)
+        # extracting_utility.show_plot_graph(tables[i])
         df = df.applymap(lambda x: x.rstrip("\/"))
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     # df_total.to_csv("csv_output.csv", mode="a", index=False, header=False)
@@ -125,6 +125,10 @@ def Pattern22(pdf_file, csv_output):
     while j < (len(df_total)):
         date_match = re.search(date_pattern, df_total.loc[j, 1])
         if date_match:
+            if df_total.loc[j,6] == "":
+                split_text = df_total.loc[j,7].split(" ",1)
+                df_total.loc[j,6] = split_text[0]
+                df_total.loc[j,7] = split_text[1]
             k = j + 1
             new_row = df_total.loc[j]
             while k < (len(df_total)):
@@ -140,7 +144,7 @@ def Pattern22(pdf_file, csv_output):
     df = df.applymap(extracting_utility.remove_trailing_newline)
     if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
 
     global Success
     Success = True
