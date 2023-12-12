@@ -96,13 +96,19 @@ def Pattern22(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = ["85,156,230,285,361,418,483"]
+    cols = ["85,156,230,285,361,418,490"]
     cols *= 128
     date_pattern = r"\d{2}-[A-Za-z]{3}-\n\d{4}"
     tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all", row_tol=12, columns=cols, edge_tol=500
     )
-    # tables.export('foo.csv', f='csv')
+    # tables = camelot.read_pdf(
+    #     pdf_file, flavor="guess", pages="1",
+    #     line_scale = 20,
+    # )
+    # # tables.export('foo.csv', f='csv', compress=True)
+    # combined_table = pd.concat([table.df for table in tables])
+    # combined_table.to_csv('foo.csv', index=False)
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
