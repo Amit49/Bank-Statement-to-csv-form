@@ -12,6 +12,7 @@ def initialize(pdf_file, csv_output):
     patterns = [
         Pattern5,
         Pattern23,
+        PatternIDBI3,
         Default,
     ]
     for pattern in patterns:
@@ -227,4 +228,30 @@ def Default(pdf_file, csv_output):
         # Remove trailing backslashes from all cells
         df = df.applymap(lambda x: x.rstrip("\/"))
         df.to_csv(csv_output, mode="a", index=False, header=False)
+    return
+
+# Done
+# ARIL_TO_JUNE_1701758254.pdf
+# pattern: "Sr Date Description Amount Type"
+def PatternIDBI3(pdf_file, csv_output):
+    pattern_text = "Sr Date Description Amount Type"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    Bank_Name = "IDBI Bank"
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    tables = camelot.read_pdf(
+        pdf_file, flavor="lattice", pages="all"
+    )
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    df.to_csv(csv_output, mode="w", index=False, header=False)
+    global Success
+    Success = True
     return
