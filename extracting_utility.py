@@ -67,13 +67,31 @@ def remove_trailing_newline(cell_value):
     return cell_value
 
 
-def show_plot_graph(table):
-    # camelot.plot(table, kind='grid')
-    # camelot.plot(table, kind='joint')
-    # camelot.plot(table, kind='textedge')
+def show_plot_graph(table, plot_type="textedge"):
+  """
+  Creates and shows a plot of the Camelot extracted table.
+
+  Args:
+    table: The Camelot extracted table object.
+    plot_type: (Optional) The type of plot to generate.
+      Supported types are "grid", "joint", "textedge", "contour", and "line".
+      Defaults to "grid".
+  """
+  if plot_type not in ("grid", "joint", "textedge", "contour", "line"):
+    raise ValueError(f"Invalid plot_type: {plot_type}")
+
+  if plot_type == "grid":
+    camelot.plot(table, kind="grid")
+  elif plot_type == "joint":
+    camelot.plot(table, kind="joint")
+  elif plot_type == "textedge":
+    camelot.plot(table, kind="textedge")
+  elif plot_type == "contour":
     camelot.plot(table, kind="contour")
-    # camelot.plot(table, kind='line')
-    plt.show(block=True)
+  elif plot_type == "line":
+    camelot.plot(table, kind="line")
+
+  plt.show(block=True)
 
 
 def set_duplicate_remove(should_remove):
@@ -124,4 +142,7 @@ def filter_dataframe(df, column_name, string, condition_type, inclusive=False):
         # Discard rows after the specified index
         filtered_df = df.loc[: index_of_string[0] - correction]
 
-    return filtered_df
+    return filtered_df.reset_index(drop=True)
+
+def print_markdown(df):
+    print(df.to_markdown(tablefmt="grid"))
