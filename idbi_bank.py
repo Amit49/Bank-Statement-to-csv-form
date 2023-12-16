@@ -6,7 +6,7 @@ import camelot
 import re
 
 Success = False
-
+Bank_Name = "IDBI Bank"
 
 def initialize(pdf_file, csv_output):
     patterns = [
@@ -31,7 +31,6 @@ def Pattern5(pdf_file, csv_output):
         pdf_file, pattern_text
     ) and not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text1):
         return
-    Bank_Name = "IDBI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -64,7 +63,7 @@ def Pattern5(pdf_file, csv_output):
                 break
 
             date_match = re.search(date_pattern, df.loc[j, 0])
-            if "Our Toll-free numbers" in df.loc[j, 0]:
+            if "Our Toll-free numbers" in df.loc[j, 0] or "IDBI Bank Ltd. Regd" in df.loc[j, 1]:
                 break
             if date_match and len(df.loc[j]) > 5:
                 merged_rows.append(df.loc[j])
@@ -145,7 +144,6 @@ def Pattern23(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "IDBI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -214,7 +212,6 @@ def Pattern23(pdf_file, csv_output):
 
 
 def Default(pdf_file, csv_output):
-    Bank_Name = "IDBI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name,
         Bank_Name,
@@ -238,7 +235,6 @@ def PatternIDBI3(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "IDBI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
