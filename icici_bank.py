@@ -8,7 +8,7 @@ import re
 import matplotlib.pyplot as plt
 
 Success = False
-
+Bank_Name = "ICICI Bank"
 
 def initialize(pdf_file, csv_output):
     patterns = [
@@ -37,7 +37,7 @@ def initialize(pdf_file, csv_output):
 #     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
 #         return
 
-#     Bank_Name = "ICICI Bank"
+# 
 #     extracting_utility.print_info(
 #         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
 #     )
@@ -92,7 +92,6 @@ def Pattern22(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -161,7 +160,7 @@ def Pattern22(pdf_file, csv_output):
 
 
 def Default(pdf_file, csv_output):
-    Bank_Name = "ICICI Bank"
+
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name,
         Bank_Name,
@@ -183,7 +182,7 @@ def extract_and_remove_text(input_string, strpart1, strpart2):
 
     if start_index != -1 and end_index != -1:
         extracted_text = input_string[start_index + len(strpart1):end_index]
-        input_string = input_string[:start_index] + input_string[end_index + len(strpart2):]
+        input_string = input_string[end_index + len(strpart2):]
         return extracted_text, input_string
     else:
         return None, input_string
@@ -197,7 +196,6 @@ def PatternICICI3(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -218,6 +216,7 @@ def PatternICICI3(pdf_file, csv_output):
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
+    # df.to_csv("csv_output.csv", mode="w", index=False, header=False)
     date_pattern = r"\d{2}-\d{2}-\d{4}"
     merged_row = [
         [
@@ -242,13 +241,12 @@ def PatternICICI3(pdf_file, csv_output):
                 last_part = df.loc[j,3]
             else:
                 last_part = df.loc[j,4]
-                
             extracted_text, remaining_string = extract_and_remove_text(remaining_string, first_part, last_part)
             df.loc[j, 2] = extracted_text
             merged_row.append(df.loc[j])
         j += 1
     df = pd.DataFrame(merged_row)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -262,7 +260,6 @@ def PatternICICI4(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -289,7 +286,6 @@ def PatternICICI5(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -316,7 +312,6 @@ def PatternICICI6(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -386,7 +381,6 @@ def PatternICICI7(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -417,7 +411,6 @@ def PatternICICI8(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -547,7 +540,6 @@ def PatternICICI9(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "ICICI Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
