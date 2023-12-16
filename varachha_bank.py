@@ -6,6 +6,7 @@ import camelot
 import re
 
 Success = False
+Bank_Name = "VARCHHA BANK"
 
 
 def initialize(pdf_file, csv_output):
@@ -31,9 +32,7 @@ def Pattern18(pdf_file, csv_output):
     )
     if not re.search(pattern_text, extracting_utility.text_in_pdf(pdf_file)):
         return
-    # print("Pattern18")
 
-    Bank_Name = "VARCHHA BANK"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -103,7 +102,7 @@ def Pattern18(pdf_file, csv_output):
             j += 1
         df = pd.DataFrame(merged_row)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    # print(df_total.to_string())
+
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages=f"2-{extracting_utility.Page_Num}")
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -162,7 +161,6 @@ def Pattern18(pdf_file, csv_output):
 
 
 def Default(pdf_file, csv_output):
-    Bank_Name = "VARCHHA BANK"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name,
         Bank_Name,
@@ -186,14 +184,9 @@ def PatternVarachha2(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "VARCHHA BANK"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = [""]
-    cols *= 128
-    TA = [""]
-    TA *= 128
     tables = camelot.read_pdf(
         pdf_file, flavor="lattice", pages="all"
     )
@@ -204,7 +197,40 @@ def PatternVarachha2(pdf_file, csv_output):
         df = extracting_utility.filter_dataframe(df,0,"Date",1)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
-    print(df.to_markdown(tablefmt="grid"))
+
+    date_pattern = r"\d{2}-\d{2}-\d{4}"
+
+    merged_row = [
+        [
+            "Date",
+            "Value Date",
+            "Narration",
+            "Chq/Ref No",
+            "Debit",
+            "Credit",
+            "Closing Bal",
+        ]
+    ]
+
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if (
+                    next_date_match
+                ):
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    # print(df.to_markdown(tablefmt="grid"))
     df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
@@ -222,7 +248,6 @@ def PatternVarachha3(pdf_file, csv_output):
     ):
         return
 
-    Bank_Name = "VARCHHA BANK"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -252,7 +277,6 @@ def PatternVarachha4(pdf_file, csv_output):
     ):
         return
 
-    Bank_Name = "VARCHHA BANK"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
