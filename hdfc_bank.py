@@ -6,12 +6,12 @@ import camelot
 import re
 
 Success = False
-
+Bank_Name = "HDFC Bank"
 
 def initialize(pdf_file, csv_output):
     patterns = [
         Pattern8,
-        Default,
+        PatternHDFC1,
     ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
@@ -26,7 +26,6 @@ def Pattern8(pdf_file, csv_output):
     pattern_text = "Date Narration Chq./Ref.No. Value Dt Withdrawal Amt. Deposit Amt. Closing Balance"
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
-    Bank_Name = "HDFC Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -151,20 +150,56 @@ def Pattern8(pdf_file, csv_output):
     Success = True
     return
 
+# Working
+# BSF_2_1702290767.pdf
+# pattern: "Date Narration Cheque/Ref. No. Value Date Withdrawal Deposit Closing"
+def PatternHDFC1(pdf_file, csv_output):
+    pattern_text = "Date Narration Cheque/Ref. No. Value Date Withdrawal Deposit Closing"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
 
-def Default(pdf_file, csv_output):
-    Bank_Name = "HDFC Bank"
     extracting_utility.print_info(
-        inspect.currentframe().f_code.co_name,
-        Bank_Name,
-        extracting_utility.get_page_num(pdf_file),
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # Remove trailing backslashes from all cells
-        df = df.applymap(lambda x: x.rstrip("\/"))
-        df.to_csv(csv_output, mode="a", index=False, header=False)
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    date_pattern = r"\d{2} [A-Za-z]{3} \d{4}"
+
+    merged_row = [
+        [
+            "Date",
+            "Narration",
+            "Cheque/Ref. No.",
+            "Value Date",
+            "Withdrawal",
+            "Deposit",
+            "Closing Balance",
+        ]
+    ]
+
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if next_date_match or df.loc[k, 0] != "":
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
+    global Success
+    Success = True
     return

@@ -106,6 +106,8 @@ def main():
     # 18 = UJJVALA BANK
     # 19 = UNION BANK
     # 20 = VARCHHA BANK
+    # 21 = SARASWAT BANK
+    # 22 = INDIAN BANK
     try:
         findPatternForBank()
     except Exception as e:
