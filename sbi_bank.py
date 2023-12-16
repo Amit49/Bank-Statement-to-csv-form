@@ -68,7 +68,7 @@ def Pattern4(pdf_file, csv_output):
                 df.index = df.index + 1  # shifting index
                 df.sort_index(inplace=True)
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-        if  extracting_utility.get_duplicate_remove():
+        if extracting_utility.get_duplicate_remove():
             df_total = df_total.drop_duplicates().reset_index(drop=True)
         df_total.to_csv(csv_output, mode="a", index=False, header=False)
         Success = True
@@ -113,11 +113,12 @@ def Pattern4(pdf_file, csv_output):
                     row[1] = updated_string
                     row[2] = remainder
             df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-        if  extracting_utility.get_duplicate_remove():
+        if extracting_utility.get_duplicate_remove():
             df_total = df_total.drop_duplicates().reset_index(drop=True)
         df_total.to_csv(csv_output, mode="a", index=False, header=False)
         Success = True
     return
+
 
 # Done
 # Account_Statement_from_1_Oct_2023_to_31_Oct_2023_1701060585.pdf
@@ -138,9 +139,7 @@ def PatternSBI2(pdf_file, csv_output):
     # tables = camelot.read_pdf(
     #     pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TA
     # )
-    tables = camelot.read_pdf(
-        pdf_file, flavor="lattice", pages="all",
-    )
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", split_text=True)
     # tables.export('foo.csv',f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -164,22 +163,28 @@ def PatternSBI2(pdf_file, csv_output):
 
     j = 0
     while j < (len(df)):
-        date_match = re.search(date_pattern, df.loc[j, 0])
+        date_match = re.findall(date_pattern, df.loc[j, 0])
         if date_match:
             value_date_match = re.search(date_pattern, df.loc[j, 1])
+            value_date_match2 = re.search(date_pattern, df.loc[j, 2])
             if not value_date_match:
-                split_row = df.loc[j,2].split(maxsplit=1)
-                df.loc[j, 1] = split_row[0] 
-                df.loc[j, 2] = split_row[1]
+                if value_date_match2:
+                    split_row = df.loc[j, 2].split(maxsplit=1)
+                    df.loc[j, 1] = split_row[0]
+                    df.loc[j, 2] = split_row[1]
+                elif len(date_match) > 1:
+                    split_row = df.loc[j, 0].split(maxsplit=1)
+                    df.loc[j, 0] = split_row[0]
+                    df.loc[j, 1] = split_row[1]
             elif len(df.loc[j, 1]) > 12:
-                split_row = df.loc[j,1].split(maxsplit=1)
+                split_row = df.loc[j, 1].split(maxsplit=1)
                 df.loc[j, 1] = split_row[0]
                 df.loc[j, 2] = split_row[1] + df.loc[j, 2]
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
-                
+
                 if (
                     next_date_match
                     or df.loc[k, 0] != ""
@@ -198,6 +203,7 @@ def PatternSBI2(pdf_file, csv_output):
     global Success
     Success = True
     return
+
 
 # Done
 # NIRMYA_10. JANUARY 2023.pdf
@@ -219,10 +225,7 @@ def PatternSBI3(pdf_file, csv_output):
     #     pdf_file, flavor="stream", pages="all",
     #     # columns=cols, table_areas=TA
     # )
-    tables = camelot.read_pdf(
-        pdf_file, flavor="lattice", pages="all",
-        line_scale = 80
-    )
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale=80)
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -230,7 +233,7 @@ def PatternSBI3(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     # df.to_csv("csv_output.csv", mode="w", index=False, header=False)
-    
+
     date_pattern = r"\d{2}-\d{2}-\d{2}"
     merged_row = [
         [
@@ -246,12 +249,12 @@ def PatternSBI3(pdf_file, csv_output):
     j = 0
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
-        if date_match and len(df.loc[j])>5 and df.loc[j, 5]!= "":
+        if date_match and len(df.loc[j]) > 5 and df.loc[j, 5] != "":
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
-                
+
                 if (
                     next_date_match
                     or df.loc[k, 0] != ""
@@ -270,6 +273,7 @@ def PatternSBI3(pdf_file, csv_output):
     global Success
     Success = True
     return
+
 
 # Done
 # NISHKAM_15.04.2022 TO 05.04.2023.pdf
@@ -292,7 +296,9 @@ def PatternSBI4(pdf_file, csv_output):
     #     # columns=cols, table_areas=TA
     # )
     tables = camelot.read_pdf(
-        pdf_file, flavor="lattice", pages="all",
+        pdf_file,
+        flavor="lattice",
+        pages="all",
         # line_scale = 80
     )
     df_total = pd.DataFrame()
@@ -302,7 +308,7 @@ def PatternSBI4(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     # df.to_csv("csv_output.csv", mode="w", index=False, header=False)
-    
+
     date_pattern = r"\d{2}-\d{2}-\d{2}"
     merged_row = [
         [
@@ -319,12 +325,12 @@ def PatternSBI4(pdf_file, csv_output):
     j = 0
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
-        if date_match and len(df.loc[j])>6 and df.loc[j, 6]!= "":
+        if date_match and len(df.loc[j]) > 6 and df.loc[j, 6] != "":
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
-                
+
                 if (
                     next_date_match
                     or df.loc[k, 0] != ""
@@ -344,8 +350,9 @@ def PatternSBI4(pdf_file, csv_output):
     Success = True
     return
 
+
 # Done
-# 
+#
 # pattern: "Date Credit Balance DetailsRef No./Cheque"
 def PatternSBI5(pdf_file, csv_output):
     pattern_text = "Date Credit Balance DetailsRef No./Cheque"
@@ -365,8 +372,10 @@ def PatternSBI5(pdf_file, csv_output):
     #     # columns=cols, table_areas=TA
     # )
     tables = camelot.read_pdf(
-        pdf_file, flavor="lattice", pages="all",
-        line_scale = 20,
+        pdf_file,
+        flavor="lattice",
+        pages="all",
+        line_scale=20,
         process_background=True,
     )
     df_total = pd.DataFrame()
@@ -377,7 +386,7 @@ def PatternSBI5(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     # df.to_csv("csv_output.csv", mode="w", index=False, header=False)
-    
+
     date_pattern = r"\d{2} [A-Za-z]{3} \d{4}"
     merged_row = [
         [
@@ -393,12 +402,12 @@ def PatternSBI5(pdf_file, csv_output):
     j = 0
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
-        if date_match and len(df.loc[j])>5 and df.loc[j, 5]!= "":
+        if date_match and len(df.loc[j]) > 5 and df.loc[j, 5] != "":
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
-                
+
                 if (
                     next_date_match
                     or df.loc[k, 0] != ""
