@@ -141,6 +141,7 @@ def PatternSBI2(pdf_file, csv_output):
     tables = camelot.read_pdf(
         pdf_file, flavor="lattice", pages="all",
     )
+    # tables.export('foo.csv',f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -170,7 +171,10 @@ def PatternSBI2(pdf_file, csv_output):
                 split_row = df.loc[j,2].split(maxsplit=1)
                 df.loc[j, 1] = split_row[0] 
                 df.loc[j, 2] = split_row[1]
-                print(df.loc[j])
+            elif len(df.loc[j, 1]) > 12:
+                split_row = df.loc[j,1].split(maxsplit=1)
+                df.loc[j, 1] = split_row[0]
+                df.loc[j, 2] = split_row[1] + df.loc[j, 2]
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
