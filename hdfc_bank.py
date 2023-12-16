@@ -44,8 +44,8 @@ def Pattern8(pdf_file, csv_output):
     already_extracted = []
     start_page = 1
     end_page = extracting_utility.Page_Num
-    # start_page = 1
-    # end_page = 6
+    # start_page = 38
+    # end_page = 38
     page = start_page
     while page <= end_page:
         tables = camelot.read_pdf(
@@ -53,7 +53,7 @@ def Pattern8(pdf_file, csv_output):
             flavor="stream",
             pages=f"{page}",
             columns=cols,
-            # split_text=True,
+            split_text=True,
             # edge_tol=500,
             table_areas=TA,
         )
@@ -145,12 +145,12 @@ def Pattern8(pdf_file, csv_output):
             drop=True
         )
     df = df.iloc[:, :7]
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
 
-# Working
+# Done
 # BSF_2_1702290767.pdf
 # pattern: "Date Narration Cheque/Ref. No. Value Date Withdrawal Deposit Closing"
 def PatternHDFC1(pdf_file, csv_output):
