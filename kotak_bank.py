@@ -8,7 +8,7 @@ import tabula
 import re
 
 Success = False
-
+Bank_Name = "Kotak Bank"
 
 def initialize(pdf_file, csv_output):
     patterns = [
@@ -17,7 +17,7 @@ def initialize(pdf_file, csv_output):
         Pattern12,
         Pattern13,
         PatternKotak5,
-        # PatternKotak6,
+        PatternKotak6,
     ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
@@ -43,7 +43,6 @@ def Pattern10(pdf_file, csv_output):
         return
     # print("Pattern10")
 
-    Bank_Name = "Kotak Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -129,7 +128,7 @@ def Pattern10(pdf_file, csv_output):
     if extracting_utility.get_duplicate_remove():
         df = df.drop_duplicates().reset_index(drop=True)
     df = df.iloc[:, :6]
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -146,7 +145,6 @@ def Pattern11(pdf_file, csv_output):
         return
     # print("Pattern11")
 
-    Bank_Name = "Kotak Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -183,7 +181,7 @@ def Pattern11(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    df_total.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -198,7 +196,6 @@ def Pattern12(pdf_file, csv_output):
         return
     # print("Pattern12")
 
-    Bank_Name = "Kotak Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -398,7 +395,7 @@ def Pattern12(pdf_file, csv_output):
         df = df_total.drop_duplicates().reset_index(drop=True)
     df = df.applymap(extracting_utility.remove_trailing_newline)
     df = df.iloc[:, :5]
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -415,7 +412,6 @@ def Pattern13(pdf_file, csv_output):
         return
     # print("Pattern13")
 
-    Bank_Name = "Kotak Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -517,7 +513,7 @@ def Pattern13(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    df_total.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -531,7 +527,6 @@ def PatternKotak5(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "Kotak Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -603,34 +598,66 @@ def PatternKotak5(pdf_file, csv_output):
     Success = True
     return
 
-# Working
-# No need I think, need to review later
-# Replace with file name
-# pattern: "Chq/Ref No. Withdrawal (Dr) Date Narration Deposit (Cr) Balance"
+# Done
+# laxsh_3_1702358732.pdf
+# pattern: "Date Narration Chq/Ref No Withdrawal (Dr) BalanceINR"
 def PatternKotak6(pdf_file, csv_output):
-    pattern_text = "Chq/Ref No. Withdrawal (Dr) Date Narration Deposit (Cr) Balance"
+    pattern_text = "Date Narration Chq/Ref No Withdrawal (Dr) BalanceINR"
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "Kotak Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = [""]
+    cols = ["72,243,335,460,600"]
     cols *= 128
-    TA = [""]
+    TA = ["0,770,700,0"]
     TA *= 128
     tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all",
-        # columns=cols, table_areas=TA
+        columns=cols, table_areas=TA
     )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        extracting_utility.show_plot_graph(tables[i])
+        # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    
+    date_pattern = r"\d{2}-\d{2}-\d{4}"
+
+    merged_row = [
+        [
+            "Date",
+            "Narration",
+            "Chq/Ref No",
+            "Withdrawal (Dr)",
+            "Deposit(Cr)",
+            "Balance",
+        ]
+    ]
+
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if (
+                    next_date_match
+                    or df.loc[k, 0] != ""
+                ):
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
