@@ -6,7 +6,7 @@ import camelot
 import re
 
 Success = False
-
+Bank_Name = "Baroda Bank"
 
 def initialize(pdf_file, csv_output):
     patterns = [
@@ -28,8 +28,6 @@ def Pattern1(pdf_file, csv_output):
     pattern_text = "S.No Date Description Cheque\nNoDebit Credit Balance Value\nDate"
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
-
-    Bank_Name = "Baroda Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -86,7 +84,7 @@ def Pattern1(pdf_file, csv_output):
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total = df_total.iloc[:, :8]
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    df_total.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -99,8 +97,6 @@ def Pattern14(pdf_file, csv_output):
     pattern_text = "NARRATION DEPOSIT(CR) DATE CHQ.NO. WITHDRAWAL(DR) BALANCE(INR)"
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
-
-    Bank_Name = "Baroda Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -137,7 +133,7 @@ def Pattern14(pdf_file, csv_output):
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    df_total.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
 
@@ -149,26 +145,29 @@ def Pattern20(pdf_file, csv_output):
     pattern_text = "Serial\nNoTransaction\nDateValue\nDateDescription Cheque\nNumberDebit Credit Balance\n"
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
-    # print("Pattern20")
 
-    Bank_Name = "Baroda Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    # print(csv_output)
-    skip_first = True
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", row_tol=14)
-    date_pattern = r"\d{2}-\d{2}-\d{4}"
-    # For avoiding duplicate
-    isInserted = []
+
+    cols = ["42,97,145,320,362,435,495"]
+    cols *= 128
+    TA = ["0,720,580,0"]
+    TA *= 128
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all",
+        columns=cols, table_areas=TA
+    )
+
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # df.to_csv("csv_output.csv" ,mode='a',index=False,header=False)
-        j = 0
-        merged_row = []
-        if i == 0:
-            merged_row = [
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    date_pattern = r"\d{2}-\d{2}-\d{4}"
+
+    merged_row = [
                 [
                     "Serial No",
                     "Transaction Date",
@@ -180,25 +179,28 @@ def Pattern20(pdf_file, csv_output):
                     "Balance",
                 ]
             ]
-        while j < (len(df)):
-            date_match = re.search(date_pattern, df.loc[j, 1])
-            if date_match:
-                if len(df.loc[j, 2]) > 10:
-                    split_result = df.loc[j, 2].split(" ", 1)
-                    df.loc[j, 2] = split_result[0]
-                    df.loc[j, 3] = split_result[1] + df.loc[j, 3]
-                if df.loc[j, 0] in isInserted:
-                    j += 1
-                    continue
-                isInserted.append(df.loc[j, 0])
-                merged_row.append(df.loc[j])
-            j += 1
-        df = pd.DataFrame(merged_row)
-        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    if extracting_utility.get_duplicate_remove():
-        df_total = df_total.drop_duplicates().reset_index(drop=True)
-    df_total = df_total.iloc[:, :8]
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+
+    j = 0
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 1])
+        if date_match:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 1])
+                if (
+                    next_date_match
+                    or df.loc[k, 1] != ""
+                ):
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    df = df.iloc[:, :8]
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
@@ -216,8 +218,6 @@ def Pattern21(pdf_file, csv_output):
     ) and not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
         return
     # print("Pattern21")
-
-    Bank_Name = "Baroda Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -242,7 +242,7 @@ def Pattern21(pdf_file, csv_output):
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total = df_total.iloc[:, :4]
-    df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    df_total.to_csv(csv_output, mode="w", index=False, header=False)
 
     global Success
     Success = True
