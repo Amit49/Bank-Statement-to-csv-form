@@ -418,7 +418,9 @@ def Pattern13(pdf_file, csv_output):
     # print(csv_output)
     cols = ["68,216,355,501,603,689,781,836"]
     cols *= 128
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", column=cols)
+    TA = ["0,825,840,0"]
+    TA *= 128
+    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", column=cols,table_areas=TA)
     # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
     # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
     column_name_appened = False
@@ -426,12 +428,7 @@ def Pattern13(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # df.to_csv("test_temp.csv", mode="a", index=False, header=False)
-        # camelot.plot(tables[0], kind='contour')
-        # camelot.plot(tables[i], kind='grid')
-        # plt.show(block = True)
-        # continue
-        # date_pattern = r"\d{2}-d{2}-\d{4}"
+        # extracting_utility.show_plot_graph(tables[i])
         date_pattern = r"\d{2}/\d{2}/\d{4}"
         j = 0
 
