@@ -221,6 +221,7 @@ def Pattern12(pdf_file, csv_output):
         column=cols,
     )
     # tables.export('foo.csv', f='csv')
+    # tables_last_page.export('foo.csv', f='csv')
     column_name_appened = False
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -379,6 +380,9 @@ def Pattern12(pdf_file, csv_output):
                     or df.loc[k,1] == "Cust.Reln.No"
                     or df.loc[k, 1]=="Deposit (Cr)"
                     or df.loc[k, 1]=="Nominee Registered"
+                    or df.loc[k, 1]=="Account No"
+                    or df.loc[k, 1]=="Currency"
+                    or df.loc[k, 1]=="Branch"
                     or df.loc[k, 2]=="Nominee Registered"
                     or df.loc[k, 2]=="Deposit (Cr)"
                 ):
