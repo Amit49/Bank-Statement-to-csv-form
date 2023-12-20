@@ -614,14 +614,17 @@ def PatternKotak6(pdf_file, csv_output):
         pdf_file, flavor="stream", pages="all",
         columns=cols, table_areas=TA
     )
+    # tables.export('foo.csv', f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # extracting_utility.show_plot_graph(tables[i])
+        df = extracting_utility.filter_dataframe(df,0,"Date",1)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     
-    date_pattern = r"\d{2}-\d{2}-\d{4}"
+    # date_pattern = r"\d{2}-\d{2}-\d{4}"
+    date_pattern = r"\d{2}-\d{2}"
 
     merged_row = [
         [
@@ -637,14 +640,14 @@ def PatternKotak6(pdf_file, csv_output):
     j = 0
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
-        if date_match:
+        if date_match or df.loc[j,1] == "B/F":
             k = j + 1
             new_row = df.loc[j]
             while k < (len(df)):
                 next_date_match = re.search(date_pattern, df.loc[k, 0])
                 if (
                     next_date_match
-                    or df.loc[k, 0] != ""
+                    or len(df.loc[k, 0]) > 4
                 ):
                     break
                 new_row += "\n" + df.loc[k]
