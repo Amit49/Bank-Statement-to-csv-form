@@ -156,9 +156,11 @@ def Pattern20(pdf_file, csv_output):
     TA *= 128
     tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all",
-        columns=cols, table_areas=TA
+        columns=cols, table_areas=TA,
+        #row_tol 14 is improtant as date and description are not alligend
+        row_tol=14,
     )
-
+    # tables.export('foo.csv', f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
