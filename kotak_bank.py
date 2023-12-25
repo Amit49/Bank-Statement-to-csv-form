@@ -405,6 +405,68 @@ def Pattern12(pdf_file, csv_output):
     return
 
 
+def modify(df):
+    date_pattern = r"\d{2}/\d{2}/\d{4}"
+    j = 0
+
+    # if len(df.columns) < 8:
+    #     continue
+    merged_row = []
+    # merged_row = [["Date","Narration","Chq/Ref No","Withdrawal (Dr)/Deposit (Cr)","Balance"]]
+    # merged_row = [["Sl.,No.","Date","Description","Chq / Ref number","Amount","Dr / Cr","Balance","Dr / Cr"]]
+    while j < (len(df)):
+        if "Opening balance" in str(df.loc[j, 0]):
+            break
+        # date_match = re.search(date_pattern,df.loc[j, 0])
+        # print(df.loc[j])
+        if len(df.loc[j]) == 9 and ("DR" in str(df.loc[j, 8]) or "CR" in str(df.loc[j, 8])):
+            k = j + 1
+            new_row = df.loc[j]
+            # print("k")
+            # print(k)
+            while k < (len(df)) and (
+                "DR" not in str(df.loc[k, 8]) and "CR" not in str(df.loc[k, 8])
+            ):
+                if "Opening balance" in str(df.loc[k, 0]):
+                    break
+                new_row += df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        elif len(df.loc[j]) == 8 and ("DR" in str(df.loc[j, 7]) or "CR" in str(df.loc[j, 7])):
+            k = j + 1
+            new_row = df.loc[j]
+            # print("k")
+            # print(k)
+            while k < (len(df)) and (
+                "DR" not in str(df.loc[k, 7]) and "CR" not in str(df.loc[k, 7])
+            ):
+                if "Opening balance" in str(df.loc[k, 0]):
+                    break
+                new_row += df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        else:
+            j += 1
+
+    df = pd.DataFrame(merged_row)
+    if len(df.columns) == 8:
+        date_pattern = r"\d{2}/\d{2}/\d{4}"
+        df = df.reset_index(drop=True)
+        l = 0
+        while l < (len(df)):
+            if df.loc[l, 1] == "":
+                date_matches = re.search(date_pattern, df.loc[l, 0])
+                df.loc[l, 1] = date_matches.group()
+                df.loc[l, 0] = df.loc[l, 0][: date_matches.start()]
+            l += 1
+    if len(df.columns) == 9:
+        df = df.drop(2, axis=1)
+        df = df.rename(columns={3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7})
+
+    return df
+
 # Done
 # 21_kotak_3. JUNE 2021.pdf
 # pattern: "Chq / Ref number Dr / Cr Amount Description Balance Dr / Cr Date Sl. No."
@@ -414,111 +476,55 @@ def Pattern13(pdf_file, csv_output):
     )
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
-    # print("Pattern13")
 
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    # print(csv_output)
     cols = ["68,216,355,501,603,689,781,836"]
     cols *= 128
     TA = ["0,825,840,0"]
     TA *= 128
-    tables = camelot.read_pdf(pdf_file, flavor="stream", pages="all", column=cols,table_areas=TA)
-    # tables = camelot.read_pdf(pdf_file,flavor="lattice", pages="1",process_background=True)
-    # tabula.convert_into(pdf_file,csv_output,output_format="csv",pages="all")
-    column_name_appened = False
-    # print(tables.n)
+    tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all",
+        column=cols,
+        table_areas=TA,
+    )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # extracting_utility.show_plot_graph(tables[i])
-        date_pattern = r"\d{2}/\d{2}/\d{4}"
-        j = 0
-
-        if len(df.columns) < 8:
-            continue
-        merged_row = []
-        # merged_row = [["Date","Narration","Chq/Ref No","Withdrawal (Dr)/Deposit (Cr)","Balance"]]
-        # merged_row = [["Sl.,No.","Date","Description","Chq / Ref number","Amount","Dr / Cr","Balance","Dr / Cr"]]
-        while j < (len(df)):
-            if "Opening balance" in df.loc[j, 0]:
-                break
-            # date_match = re.search(date_pattern,df.loc[j, 0])
-            # print(df.loc[j])
-            if len(df.loc[j]) == 9 and ("DR" in df.loc[j, 8] or "CR" in df.loc[j, 8]):
-                k = j + 1
-                new_row = df.loc[j]
-                # print("k")
-                # print(k)
-                while k < (len(df)) and (
-                    "DR" not in df.loc[k, 8] and "CR" not in df.loc[k, 8]
-                ):
-                    if "Opening balance" in df.loc[k, 0]:
-                        break
-                    new_row += df.loc[k]
-                    j += 1
-                    k += 1
-                merged_row.append(new_row)
-            elif len(df.loc[j]) == 8 and ("DR" in df.loc[j, 7] or "CR" in df.loc[j, 7]):
-                k = j + 1
-                new_row = df.loc[j]
-                # print("k")
-                # print(k)
-                while k < (len(df)) and (
-                    "DR" not in df.loc[k, 7] and "CR" not in df.loc[k, 7]
-                ):
-                    if "Opening balance" in df.loc[k, 0]:
-                        break
-                    new_row += df.loc[k]
-                    j += 1
-                    k += 1
-                merged_row.append(new_row)
-            else:
-                j += 1
-
-        df = pd.DataFrame(merged_row)
-        # df.to_csv("test_temp.csv", mode="a", index=False, header=False)
-        if len(df.columns) == 8:
-            date_pattern = r"\d{2}/\d{2}/\d{4}"
-            df = df.reset_index(drop=True)
-            l = 0
-            while l < (len(df)):
-                # print(df.loc[j])
-                # if "Opening balance" in df.loc[l,0]:
-                #     break
-                if df.loc[l, 1] == "":
-                    # print(df.loc[j])
-                    date_matches = re.search(date_pattern, df.loc[l, 0])
-                    # print(date_matches.group())
-                    df.loc[l, 1] = date_matches.group()
-                    df.loc[l, 0] = df.loc[l, 0][: date_matches.start()]
-                l += 1
-        if len(df.columns) == 9:
-            df = df.drop(2, axis=1)
-            df = df.rename(columns={3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7})
-        if column_name_appened is False:
-            column_name_appened = True
-            df.loc[-1] = [
-                "Sl.No.",
-                "Date",
-                "Description",
-                "Chq / Ref number",
-                "Amount",
-                "Dr / Cr",
-                "Balance",
-                "Dr / Cr",
-            ]
-            df.index = df.index + 1  # shifting index
-            df.sort_index(inplace=True)
+        # extracting_utility.show_plot_graph(tables[i],"grid")
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    df = modify(df)
+    if(len(df)==0):
+        tables = camelot.read_pdf(
+        pdf_file, flavor="stream", pages="all",
+        column=cols,
+        )
+        df_total = pd.DataFrame()
+        for i in tqdm(range(tables.n)):
+            df = tables[i].df
+            df = modify(df)
+            df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+        df = df_total
+    df.loc[-1] = [
+        "Sl.No.",
+        "Date",
+        "Description",
+        "Chq / Ref number",
+        "Amount",
+        "Dr / Cr",
+        "Balance",
+        "Dr / Cr",
+    ]
+    df.index = df.index + 1  # shifting index
+    df.sort_index(inplace=True)
     if extracting_utility.get_duplicate_remove():
-        df_total = df_total.drop_duplicates().reset_index(drop=True)
-    df_total.to_csv(csv_output, mode="w", index=False, header=False)
+        df = df.drop_duplicates().reset_index(drop=True)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
-
 
 # Done
 # 1.7.2023 to 31.7.2023.pdf
