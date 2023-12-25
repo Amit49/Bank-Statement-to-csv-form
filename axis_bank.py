@@ -36,9 +36,51 @@ def Pattern2(pdf_file, csv_output):
     column_name_appened = False
     tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", line_scale=40)
     df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = df_total
+    date_pattern = r"\d{2}-\d{2}-\d{4}"
+    j = 0
+    merged_row = [
+        [
+            "Tran Date",
+            "Chq No",
+            "Particulars",
+            "Debit",
+            "Credit",
+            "Balance",
+            "Init. Br",
+        ]
+    ]
+    while j < (len(df)):
+        date_match = re.search(date_pattern, df.loc[j, 0])
+        if date_match or "OPENING BALANCE" in df.loc[j, 2]:
+            k = j + 1
+            new_row = df.loc[j]
+            while k < (len(df)):
+                next_date_match = re.search(date_pattern, df.loc[k, 0])
+                if (
+                    next_date_match
+                    or df.loc[k, 0] != ""
+                    or df.loc[k, 1] != ""
+                    or df.loc[k, 3] != ""
+                    or df.loc[k, 4] != ""
+                ):
+                    break
+                new_row += "\n" + df.loc[k]
+                j += 1
+                k += 1
+            merged_row.append(new_row)
+        j += 1
+    df = pd.DataFrame(merged_row)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
+    """
     shouldBreak = False
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        df.to_csv("csv_output.csv", mode="a", index=False, header=False)
         for index, row in df.iterrows():
             if "Charge Type" in row[3]:
                 shouldBreak = True
@@ -50,7 +92,7 @@ def Pattern2(pdf_file, csv_output):
                 remainder = row[1][match.start() :]
                 row[1] = updated_string
                 row[2] = remainder + row[2]
-            if row[3] == "" and row[4] == "" and row[0] != "":
+            if len(row)>4 and row[3] == "" and row[4] == "" and row[0] != "":
                 # Find the last space's position
                 last_space_index = row[2].rfind(" ")
 
@@ -77,6 +119,7 @@ def Pattern2(pdf_file, csv_output):
     if extracting_utility.get_duplicate_remove():
         df_total = df_total.drop_duplicates().reset_index(drop=True)
     df_total.to_csv(csv_output, mode="a", index=False, header=False)
+    """
     # tables[i].to_csv(csv_output ,mode='a')
     global Success
     Success = True
