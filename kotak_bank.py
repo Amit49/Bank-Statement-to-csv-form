@@ -492,10 +492,10 @@ def Pattern13(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
+        df = modify(df)
         # extracting_utility.show_plot_graph(tables[i],"grid")
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
-    df = modify(df)
     if(len(df)==0):
         tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all",
