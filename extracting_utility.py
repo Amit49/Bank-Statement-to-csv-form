@@ -125,6 +125,8 @@ def filter_dataframe(df, column_name, string, condition_type, inclusive=False):
     """
     # if condition_type not in [1, 2]:
     #     raise ValueError("Invalid condition_type. Use 1 for discarding rows before the string, 2 for discarding rows after the string.")
+    if column_name not in df.columns:
+        return df
     if inclusive:
         correction = 0
     else:

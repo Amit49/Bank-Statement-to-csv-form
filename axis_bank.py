@@ -198,6 +198,7 @@ def PatternAxis3(pdf_file, csv_output):
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         # extracting_utility.show_plot_graph(tables[i])
+        df = extracting_utility.filter_dataframe(df,2,"OPENING BALANCE",1)
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
 
