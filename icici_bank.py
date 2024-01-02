@@ -289,7 +289,7 @@ def PatternICICI5(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all",line_scale=25)
 
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
@@ -297,8 +297,12 @@ def PatternICICI5(pdf_file, csv_output):
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
+    df = extracting_utility.filter_dataframe(df,0,"Date",1,True)
     df = extracting_utility.filter_dataframe(df, 0, "Page Total", 2)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df[7] = df[7].apply(lambda x:  str(x).rsplit("\n", 1)[-1])
+
+    # print(df.to_markdown(tablefmt="grid"))
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
