@@ -46,7 +46,6 @@ def Pattern4(pdf_file, csv_output):
     global Success
 
     if extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text1):
-        # extract_tables_with_camelot(pdf_file,csv_output)
         tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all", joint_tol=20)
         df_total = pd.DataFrame()
         for i in tqdm(range(tables.n)):
@@ -74,8 +73,7 @@ def Pattern4(pdf_file, csv_output):
         Success = True
     # 10_1_1. SBI.pdf
     if extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text2):
-        # extract_tables_with_camelot(pdf_file,csv_output)
-        tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+        tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all",line_scale=20)
         df_total = pd.DataFrame()
         for i in tqdm(range(tables.n)):
             df = tables[i].df
