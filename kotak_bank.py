@@ -50,33 +50,17 @@ def Pattern10(pdf_file, csv_output):
     date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
     date_pattern_2 = r"\d{2}-[A-Za-z]{3}-\d{2}"
 
-    cols = ["89,275,350,430,527"]
+    cols = ["89,267,350,430,527"]
     cols *= 128
     TA = ['0,785,601,0']
     TA *= 128
     tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all",
         columns=cols,
-        table_ares=TA,
-        edge_tol=500,
+        table_areas=TA,
+        # edge_tol=500,
         split_text=True
     )
-    # cols = ["89,275,350,430,527"]
-    # cols *= 128
-    # TA = [0,625,0,410]
-    # # TA *= 128
-    # tables = camelot.read_pdf(
-    #     pdf_file,
-    #     flavor="lattice",
-    #     pages="all",
-    #     # columns=cols,
-    #     # table_ares=TA
-    # )
-    # tabula.convert_into(pdf_file, "temp.csv", output_format="csv", pages="all")
-    
-        
-    # print(df_total1)
-    # tables.export('foo.csv', f='csv')
     
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
