@@ -531,6 +531,7 @@ def PatternKotak5(pdf_file, csv_output):
         table_areas=TA,
         split_text=True,
     )
+    # tables.export('foo.csv', f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -539,6 +540,8 @@ def PatternKotak5(pdf_file, csv_output):
     df = df_total
     
     date_pattern = r"\d{2} [A-Za-z]{3}, \d{4}"
+    # Discard this types of date pattern in row 3
+    date_pattern_2 = r"[A-Za-z]{3}, \d{4}"
     merged_row = [
         [
             "DATE",
@@ -553,7 +556,9 @@ def PatternKotak5(pdf_file, csv_output):
     j = 0
     while j < (len(df)):
         date_match = re.search(date_pattern, df.loc[j, 0])
-        if date_match and df.loc[j, 5]!= "":
+        # issue 133
+        date_match_2 = re.search(date_pattern_2, df.loc[j, 2])
+        if date_match and not date_match_2 and df.loc[j, 5]!= "":
             if len(df.loc[j, 0]) > 12:
                 split_text = df.loc[j, 0].rsplit(maxsplit=1)
                 # print(split_text)
