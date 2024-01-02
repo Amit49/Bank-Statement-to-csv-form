@@ -594,6 +594,7 @@ def PatternICICI9(pdf_file, csv_output):
                     or df.loc[k, 1] != ""
                     or df.loc[k, 3] != ""
                     or df.loc[k, 4] != ""
+                    or df.loc[k, 7] != ""
                 ):
                     break
                 new_row += "\n" + df.loc[k]
