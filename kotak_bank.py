@@ -50,7 +50,7 @@ def Pattern10(pdf_file, csv_output):
     date_pattern = r"\d{2}-[A-Za-z]{3}-\d{4}"
     date_pattern_2 = r"\d{2}-[A-Za-z]{3}-\d{2}"
 
-    cols = ["89,267,350,430,527"]
+    cols = ["87,266,350,430,527"]
     cols *= 128
     TA = ['0,785,601,0']
     TA *= 128
