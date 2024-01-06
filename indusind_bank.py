@@ -218,7 +218,8 @@ def PatternIndusind3(pdf_file, csv_output):
     # if not index_to_discard_after.empty and not index_to_discard_before.empty:
     #     df = df.loc[index_to_discard_before[0] : index_to_discard_after[0] - 1]
 
-    date_pattern = r"\d{2} [A-Za-z]{3} \d{2}"
+    # date_pattern = r"\d{2} [A-Za-z]{3} \d{2}"
+    date_pattern = r"(\d{2} [A-Za-z]{3} \d{2})|([A-Za-z]{3} [0-3]\d, \d{4})"
     merged_row = []
 
     j = len(df) - 1
