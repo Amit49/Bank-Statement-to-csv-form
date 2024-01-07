@@ -152,7 +152,11 @@ def PatternAxis2(pdf_file, csv_output):
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
-        # extracting_utility.show_plot_graph(tables[i])
+        if len(df.columns) == 7:
+            df.insert(3,"3","")
+            new_column_names = [0, 1, 2, 3, 4, 5, 6, 7]
+            df = df.set_axis(new_column_names, axis=1)
+        # extracting_utility.show_plot_graph(tables[i],"contour")
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
 
@@ -162,7 +166,7 @@ def PatternAxis2(pdf_file, csv_output):
     if not index_to_discard_after.empty:
         df = df.loc[: index_to_discard_after[0]]
 
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
