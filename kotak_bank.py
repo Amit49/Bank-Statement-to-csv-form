@@ -463,26 +463,25 @@ def Pattern13(pdf_file, csv_output):
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
-    cols = ["68,216,355,501,603,689,781,836"]
+    cols = ["68,216,355,501,603,689,781"]
     cols *= 128
     TA = ["0,825,840,0"]
     TA *= 128
     tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all",
-        column=cols,
+        columns=cols,
         table_areas=TA,
     )
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
         df = modify(df)
-        # extracting_utility.show_plot_graph(tables[i],"grid")
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     if(len(df)==0):
         tables = camelot.read_pdf(
         pdf_file, flavor="stream", pages="all",
-        column=cols,
+        columns=cols,
         )
         df_total = pd.DataFrame()
         for i in tqdm(range(tables.n)):
