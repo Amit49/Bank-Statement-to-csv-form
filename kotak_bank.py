@@ -184,26 +184,25 @@ def Pattern12(pdf_file, csv_output):
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
     pages = int(extracting_utility.Page_Num-1)
-    cols = ["85,270,350,475"]
+    cols = ["85,270,368,475"]
     cols *= 128
     TA = ['0,632,585,0']
     TA *= 128
     tables = camelot.read_pdf(
         pdf_file,
         flavor="stream",
-        pages=f"1-{pages}",
-        # edge_tol=500,
-        column=cols,
+        # pages=f"1-{pages}",
+        pages="all",
+        columns=cols,
         table_areas=TA,
-        # row_tol = 1,
-        # split_text=True,
     )
-    tables_last_page = camelot.read_pdf(
-        pdf_file,
-        flavor="stream",
-        pages=f"{pages+1}",
-        column=cols,
-    )
+    # tables_last_page = camelot.read_pdf(
+    #     pdf_file,
+    #     flavor="stream",
+    #     pages=f"{pages+1}",
+    #     table_areas=TA,
+    #     columns=cols,
+    # )
     # tables.export('foo.csv', f='csv')
     # tables_last_page.export('foo.csv', f='csv')
     column_name_appened = False
@@ -212,10 +211,10 @@ def Pattern12(pdf_file, csv_output):
         df = tables[i].df
         # extracting_utility.show_plot_graph(tables[i])
         df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
-    for i in tqdm(range(tables_last_page.n)):
-        df = tables_last_page[i].df
-        # extracting_utility.show_plot_graph(tables[i])
-        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    # for i in tqdm(range(tables_last_page.n)):
+    #     df = tables_last_page[i].df
+    #     # extracting_utility.show_plot_graph(tables_last_page[i],"grid")
+    #     df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
     df = df_total
     df.fillna("", inplace=True)
     # df.to_csv("csv_output.csv", mode="a", index=False, header=False)
