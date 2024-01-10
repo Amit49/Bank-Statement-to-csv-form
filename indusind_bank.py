@@ -192,7 +192,7 @@ def PatternIndusind3(pdf_file, csv_output):
         pdf_file, flavor="stream", pages="all", columns=cols, table_areas=TR
     )
     # tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
-
+    # tables.export('foo.csv', f='csv')
     df_total = pd.DataFrame()
     for i in tqdm(range(tables.n)):
         df = tables[i].df
@@ -219,7 +219,7 @@ def PatternIndusind3(pdf_file, csv_output):
     #     df = df.loc[index_to_discard_before[0] : index_to_discard_after[0] - 1]
 
     # date_pattern = r"\d{2} [A-Za-z]{3} \d{2}"
-    date_pattern = r"(\d{2} [A-Za-z]{3} \d{2})|([A-Za-z]{3} [0-3]\d, \d{4})"
+    date_pattern = r"(\d{2} [A-Za-z]{3} \d{2})|([A-Za-z]{3} \d{1,2}, \d{4})"
     merged_row = []
 
     j = len(df) - 1
@@ -257,7 +257,7 @@ def PatternIndusind3(pdf_file, csv_output):
         ]
     df.index = df.index + 1  # shifting index
     df.sort_index(inplace=True)
-    df.to_csv(csv_output, mode="a", index=False, header=False)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
     return
