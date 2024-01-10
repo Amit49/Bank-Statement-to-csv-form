@@ -6,6 +6,7 @@ import camelot
 import re
 
 Success = False
+Bank_Name = "Axis Bank"
 
 
 def initialize(pdf_file, csv_output):
@@ -13,6 +14,7 @@ def initialize(pdf_file, csv_output):
         Pattern2,
         PatternAxis2,
         PatternAxis3,
+        PatternAxis4,
     ]
     for pattern in patterns:
         pattern(pdf_file, csv_output)
@@ -29,7 +31,6 @@ def Pattern2(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "Axis Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -134,7 +135,6 @@ def PatternAxis2(pdf_file, csv_output):
     if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
         return
 
-    Bank_Name = "Axis Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -183,7 +183,6 @@ def PatternAxis3(pdf_file, csv_output):
     if not re.search(pattern_text, extracting_utility.text_in_pdf(pdf_file)):
         return
 
-    Bank_Name = "Axis Bank"
     extracting_utility.print_info(
         inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
     )
@@ -264,6 +263,38 @@ def PatternAxis3(pdf_file, csv_output):
     # ]
     # df.index = df.index + 1  # shifting index
     # df.sort_index(inplace=True)
+    df.to_csv(csv_output, mode="w", index=False, header=False)
+    global Success
+    Success = True
+    return
+
+# Done
+# XXXX06_01-01-2023_13-12-2023_1702612995.1.pdf
+# pattern: "Tran Date Value Date Transaction Particulars Chq No Debit(INR) Credit(INR) Balance(INR) Branch Name"
+def PatternAxis4(pdf_file, csv_output):
+    pattern_text = "Tran Date Value Date Transaction Particulars Chq No Debit(INR) Credit(INR) Balance(INR) Branch Name"
+    if not extracting_utility.search_keyword_in_pdf(pdf_file, pattern_text):
+        return
+
+    extracting_utility.print_info(
+        inspect.currentframe().f_code.co_name, Bank_Name, extracting_utility.Page_Num
+    )
+    cols = [""]
+    cols *= 128
+    TA = [""]
+    TA *= 128
+    # tables = camelot.read_pdf(
+    #     pdf_file, flavor="stream", pages="all",
+    #     # columns=cols,
+    #     # table_areas=TA
+    # )
+    tables = camelot.read_pdf(pdf_file, flavor="lattice", pages="all")
+    df_total = pd.DataFrame()
+    for i in tqdm(range(tables.n)):
+        df = tables[i].df
+        # extracting_utility.show_plot_graph(tables[i])
+        df_total = pd.concat([df_total, df], axis=0).reset_index(drop=True)
+    df = extracting_utility.filter_dataframe(df_total,2,"CLOSING BALANCE",2,True)
     df.to_csv(csv_output, mode="w", index=False, header=False)
     global Success
     Success = True
